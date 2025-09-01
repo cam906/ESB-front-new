@@ -3,11 +3,15 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useAuth } from "../lib/useAuth";
 
 export default function Header() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
+  const [adminOpen, setAdminOpen] = useState(false);
+  const [userOpen, setUserOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const { user, isAuthenticated } = useAuth();
 
   useEffect(() => {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -57,18 +61,58 @@ export default function Header() {
           </Link>
 
           <nav className="hidden md:flex items-center space-x-6">
-            <Link href="#" className="dark:text-gray-300 hover:text-primary">Features</Link>
-            <Link href="#pricing" className="dark:text-gray-300 hover:text-primary">Pricing</Link>
-            <Link href="#" className="dark:text-gray-300 hover:text-primary">Scorecard</Link>
-            <Link href="#" className="dark:text-gray-300 hover:text-primary">FAQ</Link>
-            <Link href="#" className="dark:text-gray-300 hover:text-primary">About</Link>
-            <Link href="#" className="dark:text-gray-300 hover:text-primary">Contact us</Link>
-            <Link href="#" className="dark:text-gray-300 hover:text-primary">Login</Link>
-            <Link href="#packages" className="bg-primary text-black font-bold py-2 px-4 rounded-lg">Join Now</Link>
+            <Link href="/" className="dark:text-gray-300 hover:text-primary">Home</Link>
+            <Link href="/picks" className="dark:text-gray-300 hover:text-primary">Picks</Link>
+            <Link href="/scorecard" className="dark:text-gray-300 hover:text-primary">Scorecard</Link>
+            {isAuthenticated && (
+              <Link href="/packages" className="dark:text-gray-300 hover:text-primary">Packages</Link>
+            )}
+
+            {isAuthenticated && (user?.role === 'admin' || user?.role === 'superadmin') && (
+              <div className="relative">
+                <button onClick={() => setAdminOpen((v) => !v)} className="dark:text-gray-300 hover:text-primary">Admin</button>
+                {adminOpen && (
+                  <div className="absolute mt-2 right-0 w-56 card p-2 z-50">
+                    <div className="flex flex-col">
+                      <Link href="/admin" className="py-2 px-3 hover:text-primary">Dashboard</Link>
+                      <Link href="/admin/sports" className="py-2 px-3 hover:text-primary">Manage Sports</Link>
+                      <Link href="/admin/teams" className="py-2 px-3 hover:text-primary">Manage Teams</Link>
+                      <Link href="/admin/picks" className="py-2 px-3 hover:text-primary">Manage Picks</Link>
+                      <Link href="/admin/users" className="py-2 px-3 hover:text-primary">Manage Users</Link>
+                      <Link href="/admin/packages" className="py-2 px-3 hover:text-primary">Manage Packages</Link>
+                      <Link href="/admin/purchasehistory" className="py-2 px-3 hover:text-primary">View Purchase History</Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {!isAuthenticated && (
+              <>
+                <Link href="/signup" className="bg-primary text-black font-bold py-2 px-4 rounded-lg">Sign Up</Link>
+                <Link href="/signin" className="dark:text-gray-300 hover:text-primary">Sign In</Link>
+              </>
+            )}
+
+            {isAuthenticated && (
+              <div className="relative">
+                <button onClick={() => setUserOpen((v) => !v)} className="dark:text-gray-300 hover:text-primary">{user?.email || 'Account'}</button>
+                {userOpen && (
+                  <div className="absolute mt-2 right-0 w-56 card p-2 z-50">
+                    <div className="flex flex-col">
+                      <Link href="/account" className="py-2 px-3 hover:text-primary">Your Account</Link>
+                      {!(user?.role === 'admin' || user?.role === 'superadmin') && (
+                        <Link href="/purchasehistory" className="py-2 px-3 hover:text-primary">Purchase History</Link>
+                      )}
+                      <Link href="/signout" className="py-2 px-3 hover:text-primary">Sign Out</Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </nav>
 
           <div className="md:hidden flex items-center">
-            <Link href="#packages" className="bg-primary text-black font-bold py-2 px-4 rounded-lg mr-2">Join Now</Link>
             <button
               aria-label="Open mobile menu"
               onClick={() => setIsMobileOpen(true)}
@@ -93,14 +137,38 @@ export default function Header() {
           <button aria-label="Close mobile menu" onClick={() => setIsMobileOpen(false)} className="self-end mb-8 focus:outline-none">
             <svg className="w-7 h-7 text-gray-700 dark:text-gray-200" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
-          <Link href="#" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Features</Link>
-          <Link href="#pricing" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Pricing</Link>
-          <Link href="#" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Scorecard</Link>
-          <Link href="#" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>FAQ</Link>
-          <Link href="#" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>About</Link>
-          <Link href="#" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Contact us</Link>
-          <Link href="#" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Login</Link>
-          <Link href="#packages" className="bg-primary text-black font-bold py-2 px-4 rounded-lg text-center" onClick={() => setIsMobileOpen(false)}>Join Now</Link>
+          <Link href="/" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Home</Link>
+          <Link href="/picks" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Picks</Link>
+          <Link href="/scorecard" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Scorecard</Link>
+          {isAuthenticated && (
+            <Link href="/packages" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Packages</Link>
+          )}
+          {isAuthenticated && (user?.role === 'admin' || user?.role === 'superadmin') && (
+            <>
+              <Link href="/admin" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Admin Dashboard</Link>
+              <Link href="/admin/sports" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Manage Sports</Link>
+              <Link href="/admin/teams" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Manage Teams</Link>
+              <Link href="/admin/picks" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Manage Picks</Link>
+              <Link href="/admin/users" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Manage Users</Link>
+              <Link href="/admin/packages" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Manage Packages</Link>
+              <Link href="/admin/purchasehistory" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>View Purchase History</Link>
+            </>
+          )}
+          {!isAuthenticated && (
+            <>
+              <Link href="/signup" className="mb-4 bg-primary text-black font-bold py-2 px-4 rounded-lg text-center" onClick={() => setIsMobileOpen(false)}>Sign Up</Link>
+              <Link href="/signin" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Sign In</Link>
+            </>
+          )}
+          {isAuthenticated && (
+            <>
+              <Link href="/account" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Your Account</Link>
+              {!(user?.role === 'admin' || user?.role === 'superadmin') && (
+                <Link href="/purchasehistory" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Purchase History</Link>
+              )}
+              <Link href="/signout" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Sign Out</Link>
+            </>
+          )}
         </div>
       </nav>
     </>

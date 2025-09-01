@@ -7,9 +7,16 @@ export default function SignOutPage() {
   const router = useRouter();
 
   useEffect(() => {
-    // Placeholder: clear auth/session
-    localStorage.removeItem("auth_token");
-    router.replace("/");
+    async function run() {
+      try {
+        await fetch("/api/logout", { method: "POST", credentials: "include" });
+      } catch (e) {
+        // ignore
+      } finally {
+        router.replace("/");
+      }
+    }
+    run();
   }, [router]);
 
   return (
