@@ -22,5 +22,113 @@
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-poppins), ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Noto Sans, Ubuntu, Cantarell, Helvetica Neue, Arial, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
 }
+
+/* --- ESB Landing Theme Tokens & Utilities --- */
+:root {
+  --color-primary: #FFCD1C;
+  --color-secondary: #334155;
+  --color-accent: #3B82F6;
+  --color-success: #22C55E;
+  --color-error: #EF4444;
+  --color-dark-bg: #0F172A;
+  --color-dark-card: #1E293B;
+  --color-dark-text: #E2E8F0;
+  --color-dark-border: #1E293B;
+  --color-light-bg: #F1F5F9;
+  --color-light-card: #FFFFFF;
+  --color-light-text: #1E293B;
+  --color-light-border: #E2E8F0;
+}
+
+html.dark body {
+  background-color: var(--color-dark-bg);
+  color: var(--color-dark-text);
+}
+
+body {
+  background-color: var(--color-light-bg);
+  color: var(--color-light-text);
+}
+
+.bg-primary { background-color: var(--color-primary); }
+.text-primary { color: var(--color-primary); }
+.bg-secondary { background-color: var(--color-secondary); }
+.text-accent { color: var(--color-accent); }
+.text-success { color: var(--color-success); }
+.text-error { color: var(--color-error); }
+.bg-accent { background-color: var(--color-accent); }
+
+.section-padding { padding: 24px; }
+.gutters { padding-left: 16px; padding-right: 16px; }
+.section-spacing {
+  margin-top: 16px;
+  margin-bottom: 32px;
+  background-color: #e5eaf3;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px 0 rgba(16, 42, 67, 0.04);
+  border-top: 0.5px solid #f8fafc;
+  border-bottom: 0.5px solid #f8fafc;
+  padding-top: 64px;
+  padding-bottom: 64px;
+}
+html.dark .section-spacing {
+  background-color: #1a2332;
+  border-top: 0.5px solid #22304a;
+  border-bottom: 0.5px solid #22304a;
+}
+
+.card {
+  border-radius: 8px;
+  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  background-color: var(--color-light-card);
+  border: 1px solid var(--color-light-border);
+}
+html.dark .card {
+  background-color: var(--color-dark-card);
+  border: 1px solid var(--color-dark-border);
+}
+
+.form-field {
+  border-radius: 8px;
+  border: 1px solid var(--color-light-border);
+  background-color: #0F172A;
+}
+html.dark .form-field {
+  border-color: var(--color-dark-border);
+}
+
+.btn-primary { background-color: var(--color-primary); }
+
+.stat-number {
+  font-family: var(--font-poppins), ui-sans-serif, system-ui;
+  font-weight: 700;
+}
+
+.faq-item summary { cursor: pointer; outline: none; }
+.faq-item[open] summary ~ * { animation: fadeIn 0.5s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+
+.stat-hover { cursor: pointer; transition: transform 0.2s cubic-bezier(0.4,0,0.2,1), box-shadow 0.2s cubic-bezier(0.4,0,0.2,1); }
+.stat-hover:hover { transform: translateY(-8px) scale(1.05); box-shadow: 0 8px 24px 0 rgba(16, 42, 67, 0.12); z-index: 1; }
+
+/* Pricing cards */
+.card.pricing-card { background-color: #232b3a; color: #fff; border: 1.5px solid #2d3748; min-height: 420px; }
+@media (min-width: 768px) { .card.pricing-card { min-height: 430px; } }
+.pricing-label { display: inline-block; font-weight: 700; font-size: 1rem; margin-bottom: 8px; padding: 2px 12px; border-radius: 9999px; }
+.label-standard { background: var(--color-primary); color: #fff; }
+.label-bronze { background: #CD7F32; color: #fff; }
+.label-silver { background: #C0C0C0; color: #232b3a; }
+.label-gold { background: #FFD700; color: #232b3a; }
+.best-value-badge { background: var(--color-accent); color: #fff; font-size: 0.85rem; font-weight: 700; padding: 2px 10px; border-radius: 9999px; position: absolute; top: 18px; right: 18px; z-index: 2; }
+.pricing-card.gold .price { color: #FFD700; }
+.pricing-card.silver .price { color: var(--color-accent); }
+.pricing-card.bronze .price { color: #CD7F32; }
+
+/* Modal */
+.modal { display: none; position: fixed; z-index: 50; left: 0; top: 0; width: 100%; height: 100%; overflow: auto; background-color: rgba(0,0,0,0.6); }
+.modal-content { margin: 10% auto; padding: 24px; width: 90%; max-width: 500px; }
+html.dark .modal-content { background-color: var(--color-dark-card); }
+.modal-content { background-color: var(--color-light-card); }
+.close-button { float: right; font-size: 28px; font-weight: bold; cursor: pointer; }
