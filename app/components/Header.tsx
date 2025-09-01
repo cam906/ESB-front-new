@@ -53,7 +53,7 @@ export default function Header() {
         <div className="container mx-auto flex justify-between items-center">
           <Link className="navbar-item" href="/">
             {/* Replace with actual logo path when available */}
-            <Image src="/vercel.svg" alt="Elite Sports Bets Logo" width={120} height={32} />
+            <Image src="/ESB-Logo-yellow.png" alt="Elite Sports Bets Logo" width={120} height={32} />
           </Link>
 
           <nav className="hidden md:flex items-center space-x-6">
