@@ -1,20 +1,19 @@
-import { cookies, headers } from "next/headers";
-import { getBackendBaseUrl } from "@/app/lib/backend";
+import { readAuthCookie, verifyJwt } from "@/app/lib/auth";
+import { getSequelize } from "@/app/lib/db";
+import { initUserModel, User } from "@/app/lib/models/User";
 
 export async function GET() {
-  const cookieHeader = cookies().toString();
-  const backend = getBackendBaseUrl();
-  const resp = await fetch(`${backend}/auth/me`, {
-    method: "GET",
-    headers: { cookie: cookieHeader },
-    credentials: "include",
-    cache: "no-store",
-  });
+  const token = await readAuthCookie();
+  if (!token) return new Response(null, { status: 401 });
+  const payload = verifyJwt<{ id: number }>(token);
+  if (!payload?.id) return new Response(null, { status: 401 });
 
-  const body = await resp.text();
-  const h = new Headers();
-  h.set("content-type", resp.headers.get("content-type") || "application/json");
-  return new Response(body, { status: resp.status, headers: h });
+  const sequelize = getSequelize();
+  initUserModel(sequelize);
+  const user = await User.findByPk(payload.id);
+  if (!user) return new Response(null, { status: 401 });
+  const role = (user.roles || "").split(",").map((r) => r.trim())[0] || null;
+  return Response.json({ id: user.id, email: user.email, role });
 }
 
 

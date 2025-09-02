@@ -1,25 +1,25 @@
-import { cookies } from "next/headers";
-import { getBackendBaseUrl } from "@/app/lib/backend";
+import { getSequelize } from "@/app/lib/db";
+import { initUserModel, User } from "@/app/lib/models/User";
+import { comparePassword, setAuthCookie, signJwt } from "@/app/lib/auth";
 
 export async function POST(req: Request) {
-  const backend = getBackendBaseUrl();
-  const body = await req.text();
+  const { username, password } = await req.json();
+  if (!username || !password) return new Response("Missing credentials", { status: 400 });
 
-  const resp = await fetch(`${backend}/auth/login`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body,
-    credentials: "include",
-  });
-
-  const text = await resp.text();
-  const h = new Headers(resp.headers);
-  const setCookie = resp.headers.get("set-cookie");
-  if (setCookie) {
-    // forward backend cookie (JWT in HttpOnly cookie)
-    h.set("set-cookie", setCookie);
+  const sequelize = getSequelize();
+  initUserModel(sequelize);
+  try {
+    const user = await User.findOne({ where: { email: username } });
+    if (!user) return new Response("Invalid credentials", { status: 401 });
+    const ok = await comparePassword(password, user.password);
+    if (!ok) return new Response("Invalid credentials", { status: 401 });
+    const role = (user.roles || "").split(",").map((r) => r.trim())[0] || null;
+    const token = signJwt({ id: user.id, email: user.email, role });
+    await setAuthCookie(token);
+    return Response.json({ id: user.id, email: user.email, role });
+  } catch (e) {
+    return new Response("Server error", { status: 500 });
   }
-  return new Response(text, { status: resp.status, headers: h });
 }
 
 
