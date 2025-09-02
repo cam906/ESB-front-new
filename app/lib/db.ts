@@ -1,4 +1,5 @@
 import { Sequelize } from "sequelize";
+import mysql2 from 'mysql2';
 
 declare global {
   // eslint-disable-next-line no-var
@@ -18,6 +19,7 @@ export function getSequelize(): Sequelize {
       port: dbPort,
       dialect: "mysql",
       logging: false,
+      dialectModule: mysql2,
     });
   }
   return global.__sequelize__;
