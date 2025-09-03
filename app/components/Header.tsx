@@ -68,7 +68,7 @@ export default function Header() {
               <Link href="/packages" className="dark:text-gray-300 hover:text-primary">Packages</Link>
             )}
 
-            {isAuthenticated && (user?.role === 'admin' || user?.role === 'superadmin') && (
+            {isAuthenticated && user?.role && (user?.role.includes('ADMIN') || user?.role.includes('SUPERADMIN')) && (
               <div className="relative">
                 <button onClick={() => setAdminOpen((v) => !v)} className="dark:text-gray-300 hover:text-primary">Admin</button>
                 {adminOpen && (

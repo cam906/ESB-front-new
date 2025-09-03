@@ -115,7 +115,7 @@ const resolvers = {
       const { Pick } = models;
       return Pick.findByPk(Number(args.id));
     },
-    me: async (_: unknown, __: unknown, ctx: any) => {
+    me: async (_: unknown, __: unknown, ctx: unknown) => {
       // Basic passthrough to /api/me would require HTTP call; instead, reuse models similarly by reading cookie is nontrivial here.
       // Keep a minimal resolver returning null; frontend uses /api/me for auth already and only needs credits for convenience.
       return null;
@@ -147,7 +147,7 @@ const resolvers = {
   },
 };
 
-const yoga = createYoga<{ req: NextRequest }>({
+const yoga = createYoga({
   schema: createSchema({ typeDefs, resolvers }),
   graphqlEndpoint: '/api/graphql',
   fetchAPI: { Request: Request, Response: Response, Headers: Headers },
