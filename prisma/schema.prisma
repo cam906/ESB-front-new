@@ -1,0 +1,154 @@
+generator nextAdmin {
+    provider              = "next-admin-generator-prisma"
+  }
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Competitor {
+  id        Int       @id @default(autoincrement())
+  SportId   Int
+  name      String    @db.VarChar(128)
+  logo      String?   @db.VarChar(128)
+  createdAt DateTime  @db.DateTime(0)
+  updatedAt DateTime  @db.DateTime(0)
+  deletedAt DateTime? @db.DateTime(0)
+
+  @@unique([SportId, name], map: "Competitor_SportId_name_uindex")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model CreditPurchase {
+  id                       Int       @id @default(autoincrement())
+  UserId                   Int
+  oldSystemUserId          String?   @db.VarChar(64)
+  PackageId                Int
+  callbackKey              String    @db.VarChar(256)
+  priceInCents             Int?
+  credits                  Int
+  ExternalPaymentProcessor String?   @db.VarChar(64)
+  ExternalChargeId         String?   @db.VarChar(64)
+  startedAt                DateTime  @db.DateTime(0)
+  appliedAt                DateTime? @db.DateTime(0)
+  createdAt                DateTime  @db.DateTime(0)
+  updatedAt                DateTime  @db.DateTime(0)
+  deletedAt                DateTime? @db.DateTime(0)
+}
+
+model MailQueue {
+  id                  BigInt    @id @default(autoincrement())
+  mailStatus          Int
+  from                String    @db.VarChar(255)
+  to                  String    @db.VarChar(255)
+  cc                  String?   @db.VarChar(255)
+  bcc                 String?   @db.VarChar(255)
+  subject             String    @db.VarChar(255)
+  template            String    @db.MediumText
+  templateVars        String    @db.MediumText
+  attachmentPath      String?   @db.VarChar(255)
+  attachmentFilename  String?   @db.VarChar(255)
+  attachmentMediaType String?   @db.VarChar(255)
+  errorMessage        String?   @db.VarChar(255)
+  createdAt           DateTime  @db.DateTime(0)
+  updatedAt           DateTime? @db.DateTime(0)
+  deletedAt           DateTime? @db.DateTime(0)
+}
+
+model Package {
+  id             Int       @id @default(autoincrement())
+  title          String    @db.VarChar(32)
+  description    String    @db.VarChar(512)
+  credits        Int
+  priceInCents   Int
+  ExternalPlanId String?   @db.VarChar(32)
+  createdAt      DateTime  @db.DateTime(0)
+  updatedAt      DateTime  @db.DateTime(0)
+  deletedAt      DateTime? @db.DateTime(0)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model Pick {
+  id               Int       @id @default(autoincrement())
+  SportId          Int
+  AwayCompetitorId Int
+  HomeCompetitorId Int
+  status           Int
+  title            String    @db.VarChar(128)
+  slug             String?   @db.VarChar(128)
+  matchTime        DateTime  @db.DateTime(0)
+  analysis         String    @db.VarChar(4096)
+  summary          String    @db.VarChar(256)
+  isFeatured       Int       @default(0) @db.TinyInt
+  cntUnlocked      Int       @default(0)
+  ExternalDataObj  String?   @db.VarChar(4096)
+  createdAt        DateTime  @db.DateTime(0)
+  updatedAt        DateTime  @db.DateTime(0)
+  deletedAt        DateTime? @db.DateTime(0)
+}
+
+model PickNews {
+  id        Int       @id @default(autoincrement())
+  PickId    Int
+  news      String    @db.VarChar(4096)
+  createdAt DateTime  @db.DateTime(0)
+  updatedAt DateTime  @db.DateTime(0)
+  deletedAt DateTime? @db.DateTime(0)
+}
+
+model Sport {
+  id         Int       @id @default(autoincrement())
+  shortTitle String    @unique(map: "Sport_shortTitle_uindex") @db.VarChar(6)
+  title      String    @unique(map: "Sport_title_uindex") @db.VarChar(32)
+  createdAt  DateTime  @db.DateTime(0)
+  updatedAt  DateTime  @db.DateTime(0)
+  deletedAt  DateTime? @db.DateTime(0)
+}
+
+model UnlockedPick {
+  id              Int       @id @default(autoincrement())
+  UserId          Int
+  oldSystemUserId String?   @db.VarChar(64)
+  PickId          Int
+  createdAt       DateTime  @db.DateTime(0)
+  updatedAt       DateTime  @db.DateTime(0)
+  deletedAt       DateTime? @db.DateTime(0)
+}
+
+model User {
+  id                Int       @id @default(autoincrement())
+  email             String    @unique(map: "users_email_uindex") @db.VarChar(128)
+  name              String?   @db.VarChar(128)
+  credits           Int       @default(0)
+  cognitoUserId     String?   @unique(map: "User_cognitoUserId_uindex") @db.VarChar(64)
+  oldSystemUserId   String?   @unique(map: "User_oldSystemUserId_uindex") @db.VarChar(64)
+  roles             String?   @db.VarChar(64)
+  myReferralCode    String?   @db.VarChar(16)
+  otherReferralCode String?   @db.VarChar(16)
+  createdAt         DateTime  @db.DateTime(0)
+  updatedAt         DateTime  @db.DateTime(0)
+  deletedAt         DateTime? @db.DateTime(0)
+  password          String    @db.VarChar(255)
+}
+
+model UserRole {
+  id   Int    @id @default(autoincrement())
+  role String @unique(map: "UserRole_role_uindex") @db.VarChar(16)
+}
+
+/// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
+model old_db_picks {
+  AwayTeamId     Int?
+  HomeTeamId     Int?
+  SportId        Int?
+  Slug           String? @db.VarChar(128)
+  PickResultText String? @db.VarChar(16)
+  PickResult     Int?    @default(0)
+
+  @@ignore
+}
