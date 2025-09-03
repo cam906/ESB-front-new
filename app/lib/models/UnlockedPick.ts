@@ -4,8 +4,8 @@ export class UnlockedPick extends Model<InferAttributes<UnlockedPick>, InferCrea
   declare id: CreationOptional<number>;
   declare UserId: number;
   declare PickId: number;
-  declare createdAt: Date;
-  declare updatedAt: Date;
+  declare createdAt: CreationOptional<Date>;
+  declare updatedAt: CreationOptional<Date>;
   declare deletedAt: Date | null;
 }
 

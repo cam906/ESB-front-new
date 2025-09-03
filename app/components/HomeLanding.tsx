@@ -191,8 +191,8 @@ export default function HomeLanding() {
             <p className="mt-2">We are a sports betting consultant business. Our purpose is to help our members to become sharp bettors who consistently profit on sports betting. We provide industry leading Premium picks built on superior knowledge and experience that we back ourselves. NO other handicapping service offers this.</p>
           </details>
           <details className="faq-item card p-4">
-            <summary className="font-semibold">What is a 'pick'?</summary>
-            <p className="mt-2">A pick is a recommendation that we provide for you to use in placing a sports bet. A pick is synonymous with the words 'play', 'tip', 'bet' and 'trade' in the context of sports betting.</p>
+            <summary className="font-semibold">What is a &apos;pick&apos;?</summary>
+            <p className="mt-2">A pick is a recommendation that we provide for you to use in placing a sports bet. A pick is synonymous with the words &apos;play&apos;, &apos;tip&apos;, &apos;bet&apos; and &apos;trade&apos; in the context of sports betting.</p>
           </details>
           <details className="faq-item card p-4">
             <summary className="font-semibold">What benefits do I receive as an ESB member?</summary>
@@ -208,7 +208,7 @@ export default function HomeLanding() {
           </details>
           <details className="faq-item card p-4">
             <summary className="font-semibold">How does the Platinum membership work?</summary>
-            <p className="mt-2">The Platinum membership is suited to members who are serious about using sports betting to develop short term and long-term wealth. You will unlock the true power of Elite Sports Bets using this membership and will quickly see your bankroll grow. As a Platinum member, you will have a personal senior trader and VIP client manager who will take full control of all your sports betting so that you won't have to lift a finger. Please email vip@elitesportsbets.com for further information.</p>
+            <p className="mt-2">The Platinum membership is suited to members who are serious about using sports betting to develop short term and long-term wealth. You will unlock the true power of Elite Sports Bets using this membership and will quickly see your bankroll grow. As a Platinum member, you will have a personal senior trader and VIP client manager who will take full control of all your sports betting so that you won&apos;t have to lift a finger. Please email vip@elitesportsbets.com for further information.</p>
           </details>
           <details className="faq-item card p-4">
             <summary className="font-semibold">When do I receive my picks?</summary>
