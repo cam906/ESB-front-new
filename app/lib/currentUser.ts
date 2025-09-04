@@ -5,6 +5,8 @@ export type CurrentUser = {
   id: number;
   email: string;
   role: string | null;
+  credits: number;
+  myReferralCode: string | null;
 };
 
 export async function getCurrentUser(): Promise<CurrentUser | null> {
@@ -22,7 +24,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     .map((r) => r.trim())
     .filter(Boolean)[0] || null;
 
-  return { id: user.id, email: user.email, role };
+  return { id: user.id, email: user.email, role, credits: user.credits, myReferralCode: user.myReferralCode };
 }
 
 export function getCurrentUserRoles(user: CurrentUser): string[] {

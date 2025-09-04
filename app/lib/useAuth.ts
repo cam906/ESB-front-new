@@ -1,7 +1,13 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
 
-type User = { id: string; role?: string; email?: string } | null;
+type User = {
+  id: number;
+  email: string;
+  role: string | null;
+  credits: number;
+  myReferralCode: string | null;
+} | null;
 
 export function useAuth() {
   const [user, setUser] = useState<User>(null);
