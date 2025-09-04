@@ -1,11 +1,5 @@
 import { createSchema, createYoga } from 'graphql-yoga';
-// import { NextRequest } from 'next/server';
-import { getSequelize } from '@/app/lib/db';
-import { initAllModels } from '@/app/lib/models';
-import { Op } from 'sequelize';
-
-const sequelize = getSequelize();
-const models = initAllModels(sequelize);
+import prisma from '@/prisma';
 
 const typeDefs = /* GraphQL */ `
   scalar Date
@@ -86,39 +80,47 @@ const resolvers = {
       return ast?.value ? new Date(ast.value) : null;
     },
   },
+  Pick: {
+    isFeatured: (parent: { isFeatured: number | boolean }) => {
+      if (typeof parent.isFeatured === 'boolean') return parent.isFeatured;
+      return Boolean(parent.isFeatured);
+    },
+  },
   Query: {
     users: async (_: unknown, args: { limit?: number; offset?: number }) => {
-      const { User } = models;
-      return User.findAll({ limit: args.limit, offset: args.offset, order: [['createdAt', 'DESC']] });
+      return prisma.user.findMany({
+        take: args.limit,
+        skip: args.offset,
+        orderBy: { createdAt: 'desc' },
+      });
     },
     user: async (_: unknown, args: { id: string }) => {
-      const { User } = models;
-      return User.findByPk(Number(args.id));
+      return prisma.user.findUnique({ where: { id: Number(args.id) } });
     },
     picks: async (
       _: unknown,
       args: { limit?: number; offset?: number; status?: number; statuses?: number[]; sportId?: number; sortBy?: string; sortDir?: string }
     ) => {
-      const { Pick } = models;
       const where: Record<string, unknown> = {};
       if (Array.isArray(args.statuses) && args.statuses.length > 0) {
-        where.status = { [Op.in]: args.statuses };
+        where.status = { in: args.statuses };
       } else if (typeof args.status === 'number') {
         where.status = args.status;
       }
       if (typeof args.sportId === 'number') where.SportId = args.sportId;
+
       const sortBy = args.sortBy === 'createdAt' ? 'createdAt' : 'matchTime';
-      const sortDir = args.sortDir && args.sortDir.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
-      return Pick.findAll({
+      const sortDir = args.sortDir && args.sortDir.toUpperCase() === 'DESC' ? 'desc' : 'asc';
+
+      return prisma.pick.findMany({
         where,
-        limit: args.limit,
-        offset: args.offset,
-        order: [[sortBy, sortDir as 'ASC' | 'DESC']],
+        take: args.limit,
+        skip: args.offset,
+        orderBy: { [sortBy]: sortDir as 'asc' | 'desc' },
       });
     },
     pick: async (_: unknown, args: { id: string }) => {
-      const { Pick } = models;
-      return Pick.findByPk(Number(args.id));
+      return prisma.pick.findUnique({ where: { id: Number(args.id) } });
     },
     me: async () => {
       // Basic passthrough to /api/me would require HTTP call; instead, reuse models similarly by reading cookie is nontrivial here.
@@ -126,28 +128,34 @@ const resolvers = {
       return null;
     },
     sports: async () => {
-      const { Sport } = models;
-      return Sport.findAll({ order: [['title', 'ASC']] });
+      return prisma.sport.findMany({ orderBy: { title: 'asc' } });
     },
     competitors: async (_: unknown, args: { sportId?: number }) => {
-      const { Competitor } = models;
       const where: Record<string, unknown> = {};
       if (typeof args.sportId === 'number') where.SportId = args.sportId;
-      return Competitor.findAll({ where, order: [['name', 'ASC']] });
+      return prisma.competitor.findMany({ where, orderBy: { name: 'asc' } });
     },
     unlockedPicks: async (_: unknown, args: { userId: string }) => {
-      const { UnlockedPick } = models;
-      return UnlockedPick.findAll({ where: { UserId: Number(args.userId) }, order: [['createdAt', 'DESC']] });
+      return prisma.unlockedPick.findMany({
+        where: { UserId: Number(args.userId) },
+        orderBy: { createdAt: 'desc' },
+      });
     },
   },
   Mutation: {
     unlockPick: async (_: unknown, args: { userId: string; pickId: string }) => {
-      const { UnlockedPick } = models;
-      // Upsert-like behavior: find existing, else create
-      const existing = await UnlockedPick.findOne({ where: { UserId: Number(args.userId), PickId: Number(args.pickId) } });
+      const existing = await prisma.unlockedPick.findFirst({
+        where: { UserId: Number(args.userId), PickId: Number(args.pickId) },
+      });
       if (existing) return existing;
-      const created = await UnlockedPick.create({ UserId: Number(args.userId), PickId: Number(args.pickId) });
-      return created;
+      return prisma.unlockedPick.create({
+        data: {
+          UserId: Number(args.userId),
+          PickId: Number(args.pickId),
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
     },
   },
 };

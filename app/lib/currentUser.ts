@@ -1,6 +1,5 @@
 import { readAuthCookie, verifyJwt } from "@/app/lib/auth";
-import { getSequelize } from "@/app/lib/db";
-import { initUserModel, User } from "@/app/lib/models/User";
+import prisma from "@/prisma";
 
 export type CurrentUser = {
   id: number;
@@ -15,9 +14,7 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   const payload = verifyJwt<{ id: number }>(token);
   if (!payload?.id) return null;
 
-  const sequelize = getSequelize();
-  initUserModel(sequelize);
-  const user = await User.findByPk(payload.id);
+  const user = await prisma.user.findUnique({ where: { id: payload.id } });
   if (!user) return null;
 
   const role = (user.roles || "")
@@ -32,7 +29,7 @@ export function getCurrentUserRoles(user: CurrentUser): string[] {
   if (!user.role) return [];
   try {
     return JSON.parse(user.role);
-  } catch (e) {
+  } catch {
     return [];
   }
 }

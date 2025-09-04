@@ -64,7 +64,7 @@ export default function Header() {
             <Link href="/picks" className="dark:text-gray-300 hover:text-primary">Picks</Link>
             <Link href="/scorecard" className="dark:text-gray-300 hover:text-primary">Scorecard</Link>
             {isAuthenticated && (
-              <Link href="/packages" className="dark:text-gray-300 hover:text-primary">Packages</Link>
+              <Link href="/#packages" className="dark:text-gray-300 hover:text-primary">Packages</Link>
             )}
 
             {isAuthenticated && user?.role && (user?.role.includes('ADMIN') || user?.role.includes('SUPERADMIN')) && (
@@ -125,7 +125,7 @@ export default function Header() {
           <Link href="/picks" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Picks</Link>
           <Link href="/scorecard" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Scorecard</Link>
           {isAuthenticated && (
-            <Link href="/packages" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Packages</Link>
+            <Link href="/#packages" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Packages</Link>
           )}
           {isAuthenticated && (user?.role === 'admin' || user?.role === 'superadmin') && (
             <>
