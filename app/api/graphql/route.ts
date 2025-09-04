@@ -1,7 +1,8 @@
 import { createSchema, createYoga } from 'graphql-yoga';
-import { NextRequest } from 'next/server';
+// import { NextRequest } from 'next/server';
 import { getSequelize } from '@/app/lib/db';
 import { initAllModels } from '@/app/lib/models';
+import { Op } from 'sequelize';
 
 const sequelize = getSequelize();
 const models = initAllModels(sequelize);
@@ -60,7 +61,7 @@ const typeDefs = /* GraphQL */ `
   type Query {
     users(limit: Int = 20, offset: Int = 0): [User!]!
     user(id: ID!): User
-    picks(limit: Int = 20, offset: Int = 0, status: Int, sportId: Int, sortBy: String = "matchTime", sortDir: String = "ASC"): [Pick!]!
+    picks(limit: Int = 20, offset: Int = 0, status: Int, statuses: [Int!], sportId: Int, sortBy: String = "matchTime", sortDir: String = "ASC"): [Pick!]!
     pick(id: ID!): Pick
     sports: [Sport!]!
     competitors(sportId: Int): [Competitor!]!
@@ -96,11 +97,15 @@ const resolvers = {
     },
     picks: async (
       _: unknown,
-      args: { limit?: number; offset?: number; status?: number; sportId?: number; sortBy?: string; sortDir?: string }
+      args: { limit?: number; offset?: number; status?: number; statuses?: number[]; sportId?: number; sortBy?: string; sortDir?: string }
     ) => {
       const { Pick } = models;
       const where: Record<string, unknown> = {};
-      if (typeof args.status === 'number') where.status = args.status;
+      if (Array.isArray(args.statuses) && args.statuses.length > 0) {
+        where.status = { [Op.in]: args.statuses };
+      } else if (typeof args.status === 'number') {
+        where.status = args.status;
+      }
       if (typeof args.sportId === 'number') where.SportId = args.sportId;
       const sortBy = args.sortBy === 'createdAt' ? 'createdAt' : 'matchTime';
       const sortDir = args.sortDir && args.sortDir.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
@@ -115,7 +120,7 @@ const resolvers = {
       const { Pick } = models;
       return Pick.findByPk(Number(args.id));
     },
-    me: async (_: unknown, __: unknown, ctx: unknown) => {
+    me: async () => {
       // Basic passthrough to /api/me would require HTTP call; instead, reuse models similarly by reading cookie is nontrivial here.
       // Keep a minimal resolver returning null; frontend uses /api/me for auth already and only needs credits for convenience.
       return null;

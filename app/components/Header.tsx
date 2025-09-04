@@ -8,7 +8,6 @@ import { useAuth } from "../lib/useAuth";
 export default function Header() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
-  const [adminOpen, setAdminOpen] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
   const { user, isAuthenticated } = useAuth();
@@ -69,22 +68,7 @@ export default function Header() {
             )}
 
             {isAuthenticated && user?.role && (user?.role.includes('ADMIN') || user?.role.includes('SUPERADMIN')) && (
-              <div className="relative">
-                <button onClick={() => setAdminOpen((v) => !v)} className="dark:text-gray-300 hover:text-primary">Admin</button>
-                {adminOpen && (
-                  <div className="absolute mt-2 right-0 w-56 card p-2 z-50">
-                    <div className="flex flex-col">
-                      <Link href="/admin" className="py-2 px-3 hover:text-primary">Dashboard</Link>
-                      <Link href="/admin/sports" className="py-2 px-3 hover:text-primary">Manage Sports</Link>
-                      <Link href="/admin/teams" className="py-2 px-3 hover:text-primary">Manage Teams</Link>
-                      <Link href="/admin/picks" className="py-2 px-3 hover:text-primary">Manage Picks</Link>
-                      <Link href="/admin/users" className="py-2 px-3 hover:text-primary">Manage Users</Link>
-                      <Link href="/admin/packages" className="py-2 px-3 hover:text-primary">Manage Packages</Link>
-                      <Link href="/admin/purchasehistory" className="py-2 px-3 hover:text-primary">View Purchase History</Link>
-                    </div>
-                  </div>
-                )}
-              </div>
+              <Link href="/admin" className="py-2 px-3 hover:text-primary">Admin</Link>
             )}
 
             {!isAuthenticated && (
