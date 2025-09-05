@@ -10,6 +10,8 @@
   },
   "dependencies": {
     "@apollo/client": "^4.0.3",
+    "@paypal/checkout-server-sdk": "^1.0.3",
+    "@paypal/react-paypal-js": "^8.9.1",
     "@premieroctet/next-admin": "^8.3.0",
     "bcryptjs": "^3.0.2",
     "graphql": "^16.11.0",
@@ -17,10 +19,8 @@
     "jsonwebtoken": "^9.0.2",
     "mysql2": "^3.14.4",
     "next": "15.5.2",
-    "pg-hstore": "^2.3.4",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "sequelize": "^6.37.7"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
@@ -29,6 +29,7 @@
     "@tailwindcss/postcss": "^4",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^20",
+    "@types/paypal__checkout-server-sdk": "^1.0.8",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

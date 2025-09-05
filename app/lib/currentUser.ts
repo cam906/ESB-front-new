@@ -19,24 +19,19 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   const user = await prisma.user.findUnique({ where: { id: payload.id } });
   if (!user) return null;
 
-  const role = (user.roles || "")
-    .split(",")
-    .map((r) => r.trim())
-    .filter(Boolean)[0] || null;
+  let role = [];
+  try {
+    role = JSON.parse(user.roles || "[]");
+  } catch {
+    role = [];
+  }
 
   return { id: user.id, email: user.email, role, credits: user.credits, myReferralCode: user.myReferralCode };
 }
 
-export function getCurrentUserRoles(user: CurrentUser): string[] {
-  if (!user.role) return [];
-  try {
-    return JSON.parse(user.role);
-  } catch {
-    return [];
-  }
-}
 
 export function isCurrentUserAdmin(user: CurrentUser | null): boolean {
   if (!user) return false;
-  return getCurrentUserRoles(user).includes('ADMIN') || getCurrentUserRoles(user).includes('SUPERADMIN');
+  if (!user.role) return false;
+  return user.role.includes('ADMIN') || user.role.includes('SUPERADMIN');
 }

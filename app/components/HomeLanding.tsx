@@ -1,5 +1,7 @@
 "use client";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/app/lib/useAuth";
 
 type Package = {
   id: number;
@@ -10,6 +12,8 @@ type Package = {
 };
 
 export default function HomeLanding({ packages }: { packages: Package[] }) {
+  const router = useRouter();
+  const { isAuthenticated } = useAuth();
   useEffect(() => {
     const carousel = document.getElementById("package-carousel");
     const platinum = document.getElementById("platinum-card");
@@ -19,15 +23,15 @@ export default function HomeLanding({ packages }: { packages: Package[] }) {
     }
   }, []);
 
-  const stripPackageWord = (title: string) => title.replace(/\s*package\s*$/i, "").trim();
-  const normalizeTitle = (title: string) => stripPackageWord(title).toLowerCase();
+  const stripPackageWord = useCallback((title: string) => title.replace(/\s*package\s*$/i, "").trim(), []);
+  const normalizeTitle = useCallback((title: string) => stripPackageWord(title).toLowerCase(), [stripPackageWord]);
 
   const regularPackages = useMemo(() => {
     return packages.filter(p => normalizeTitle(p.title) !== "platinum");
-  }, [packages]);
+  }, [packages, normalizeTitle]);
   const platinumPackage = useMemo(() => {
     return packages.find(p => normalizeTitle(p.title) === "platinum") || null;
-  }, [packages]);
+  }, [packages, normalizeTitle]);
 
   return (
     <main>
@@ -111,7 +115,15 @@ export default function HomeLanding({ packages }: { packages: Package[] }) {
               <h3 className="text-xl font-bold">{stripPackageWord(pkg.title)}</h3>
               <p className="text-4xl font-bold my-4 price">${(pkg.priceInCents / 100).toLocaleString()}</p>
               <p className="dark:text-gray-400 text-gray-300">{pkg.description}</p>
-              <a href="/signup" className="mt-auto w-full text-center btn-primary text-black font-bold py-2 px-4 rounded-lg mt-6">Choose</a>
+              <button
+                onClick={() => {
+                  if (!isAuthenticated) router.push('/signup');
+                  else router.push(`/payment?packageId=${pkg.id}`);
+                }}
+                className="mt-auto w-full text-center btn-primary text-black font-bold py-2 px-4 rounded-lg mt-6"
+              >
+                Choose
+              </button>
             </div>
           ))}
 
@@ -125,7 +137,15 @@ export default function HomeLanding({ packages }: { packages: Package[] }) {
               <h3 className="text-xl font-bold flex items-center gap-2">{stripPackageWord(platinumPackage.title)} <span className="text-3xl text-yellow-400">👑</span></h3>
               <p className="text-4xl font-bold text-white my-4 price">${(platinumPackage.priceInCents / 100).toLocaleString()}</p>
               <p className="text-dark">{platinumPackage.description}</p>
-              <a href="/signup" className="mt-auto w-full text-center bg-accent text-white font-bold py-2 px-4 rounded-lg mt-6 platinum-btn">Choose</a>
+              <button
+                onClick={() => {
+                  if (!isAuthenticated) router.push('/signup');
+                  else router.push(`/payment?packageId=${platinumPackage.id}`);
+                }}
+                className="mt-auto w-full text-center bg-accent text-white font-bold py-2 px-4 rounded-lg mt-6 platinum-btn"
+              >
+                Choose
+              </button>
             </div>
           )}
         </div>

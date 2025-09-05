@@ -1,7 +1,7 @@
-User clicks Buy on a package (PayPal button inside PackageCard) use REACT_APP_PAYPAL_CLIENT_ID.
-PayPal popup completes. On success, it calls handlePaymentSuccess(packageId, payment).
-What the app does next:
-Sends a GraphQL mutation CreateOrSaveCreditPurchase with:
+User clicks Buy on a Choose button
+if not logged in, it redirects to the login page.
+if logged in, it initiate paypal payment with REACT_APP_PAYPAL_CLIENT_ID.
+PayPal popup completes. On success, it Sends a GraphQL mutation CreateOrSaveCreditPurchase with:
 UserId, PackageId, PayPal IDs, processor='PAYPAL', and timestamp.
 If the backend returns an ID, it redirects to the Payment Success page.
 Payment Success page shows “Thanks for your purchase” and auto-redirects to the dashboard after ~4 seconds.

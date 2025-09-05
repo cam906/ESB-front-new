@@ -50,7 +50,7 @@ function createClient() {
 
 export default function PurchaseHistoryPage() {
   const { user, isLoading } = useAuth();
-  const isAdmin = !!user?.role && user.role.toLowerCase().includes("admin");
+  const isAdmin = !!user?.role && user.role.includes("ADMIN");
 
   const client = useMemo(() => createClient(), []);
 

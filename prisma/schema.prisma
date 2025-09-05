@@ -141,6 +141,20 @@ model UserRole {
   role String @unique(map: "UserRole_role_uindex") @db.VarChar(16)
 }
 
+model Order {
+  id             Int       @id @default(autoincrement())
+  UserId         Int
+  PackageId      Int
+  paypalOrderId  String    @unique(map: "Order_paypalOrderId_uindex") @db.VarChar(64)
+  amountInCents  Int
+  currency       String    @db.VarChar(8)
+  status         String    @db.VarChar(16) // created | captured | failed | cancelled
+  rawResponse    String?   @db.MediumText
+  createdAt      DateTime  @db.DateTime(0)
+  updatedAt      DateTime  @db.DateTime(0)
+  deletedAt      DateTime? @db.DateTime(0)
+}
+
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model old_db_picks {
   AwayTeamId     Int?
