@@ -1,7 +1,15 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useMemo } from "react";
 
-export default function HomeLanding() {
+type Package = {
+  id: number;
+  title: string;
+  description: string;
+  credits: number;
+  priceInCents: number;
+};
+
+export default function HomeLanding({ packages }: { packages: Package[] }) {
   useEffect(() => {
     const carousel = document.getElementById("package-carousel");
     const platinum = document.getElementById("platinum-card");
@@ -10,6 +18,16 @@ export default function HomeLanding() {
       carousel.scrollTo({ left, behavior: "smooth" });
     }
   }, []);
+
+  const stripPackageWord = (title: string) => title.replace(/\s*package\s*$/i, "").trim();
+  const normalizeTitle = (title: string) => stripPackageWord(title).toLowerCase();
+
+  const regularPackages = useMemo(() => {
+    return packages.filter(p => normalizeTitle(p.title) !== "platinum");
+  }, [packages]);
+  const platinumPackage = useMemo(() => {
+    return packages.find(p => normalizeTitle(p.title) === "platinum") || null;
+  }, [packages]);
 
   return (
     <main>
@@ -88,36 +106,28 @@ export default function HomeLanding() {
         <h2 className="text-3xl font-bold text-center mb-2">Choose Your Path to Victory</h2>
         <p className="text-center mb-8">First time customer? Try our standard trade. Looking to get more out of Elite Sports Bets? Go Gold!</p>
         <div id="package-carousel" className="flex flex-row gap-4 overflow-x-auto snap-x snap-mandatory md:grid md:grid-cols-2 lg:grid-cols-4 md:overflow-x-visible md:snap-none">
-          <div className="card pricing-card bronze p-6 flex flex-col min-w-[260px] snap-start">
-            <h3 className="text-xl font-bold">Bronze</h3>
-            <p className="text-4xl font-bold my-4 price">$120</p>
-            <p className="dark:text-gray-400 text-gray-300">Five (5) GUARANTEED individual sports trade credits.</p>
-            <a href="/signup" className="mt-auto w-full text-center btn-primary text-black font-bold py-2 px-4 rounded-lg mt-6">Choose</a>
-          </div>
-          <div className="card pricing-card silver p-6 flex flex-col min-w-[260px] snap-start">
-            <h3 className="text-xl font-bold">Silver</h3>
-            <p className="text-4xl font-bold my-4 price">$300</p>
-            <p className="dark:text-gray-400 text-gray-300">Fifteen (15) GUARANTEED individual sports trade credits.</p>
-            <a href="/signup" className="mt-auto w-full text-center btn-primary text-black font-bold py-2 px-4 rounded-lg mt-6">Choose</a>
-          </div>
-          <div className="card pricing-card gold p-6 flex flex-col min-w-[260px] snap-start">
-            <h3 className="text-xl font-bold">Gold</h3>
-            <p className="text-4xl font-bold my-4 price">$550</p>
-            <p className="dark:text-gray-400 text-gray-300">Thirty (30) GUARANTEED individual sports trade credits.</p>
-            <a href="/signup" className="mt-auto w-full text-center btn-primary text-black font-bold py-2 px-4 rounded-lg mt-6">Choose</a>
-          </div>
-          <div
-            id="platinum-card"
-            className="card pricing-card standard platinum p-8 flex flex-col ring-2 ring-accent border-accent shadow-2xl relative md:scale-105 z-10 min-w-[260px] snap-center"
-            style={{ background: "linear-gradient(135deg, #3B82F6 0%, #FFCD1C 100%)", color: "#fff" }}
-          >
-            <span className="best-value-badge">Best Value</span>
-            <h3 className="text-xl font-bold flex items-center gap-2">Platinum <span className="text-3xl text-yellow-400">👑</span></h3>
-            <p className="text-4xl font-bold text-white my-4 price">$1100</p>
-            <p className="text-dark">Unlimited monthly picks including live (in-play) and futures trades.</p>
-            <p className="text-dark">A senior trader is assigned to you and acts as your VIP concierge.</p>
-            <a href="/signup" className="mt-auto w-full text-center bg-accent text-white font-bold py-2 px-4 rounded-lg mt-6 platinum-btn">Choose</a>
-          </div>
+          {regularPackages.map((pkg) => (
+            <div key={pkg.id} className={`card pricing-card ${normalizeTitle(pkg.title)} p-6 flex flex-col min-w-[260px] snap-start`}>
+              <h3 className="text-xl font-bold">{stripPackageWord(pkg.title)}</h3>
+              <p className="text-4xl font-bold my-4 price">${(pkg.priceInCents / 100).toLocaleString()}</p>
+              <p className="dark:text-gray-400 text-gray-300">{pkg.description}</p>
+              <a href="/signup" className="mt-auto w-full text-center btn-primary text-black font-bold py-2 px-4 rounded-lg mt-6">Choose</a>
+            </div>
+          ))}
+
+          {platinumPackage && (
+            <div
+              id="platinum-card"
+              className="card pricing-card standard platinum p-8 flex flex-col ring-2 ring-accent border-accent shadow-2xl relative md:scale-105 z-10 min-w-[260px] snap-center"
+              style={{ background: "linear-gradient(135deg, #3B82F6 0%, #FFCD1C 100%)", color: "#fff" }}
+            >
+              <span className="best-value-badge">Best Value</span>
+              <h3 className="text-xl font-bold flex items-center gap-2">{stripPackageWord(platinumPackage.title)} <span className="text-3xl text-yellow-400">👑</span></h3>
+              <p className="text-4xl font-bold text-white my-4 price">${(platinumPackage.priceInCents / 100).toLocaleString()}</p>
+              <p className="text-dark">{platinumPackage.description}</p>
+              <a href="/signup" className="mt-auto w-full text-center bg-accent text-white font-bold py-2 px-4 rounded-lg mt-6 platinum-btn">Choose</a>
+            </div>
+          )}
         </div>
         <p className="text-center text-sm dark:text-gray-500 mt-6">
           <b>GUARANTEED</b> = if the pick does not win, you will receive another credit until you win. This means that you will only be deducted a credit if the pick you unlock wins. If the pick we provide is incorrect, you will receive another credit until you unlock a winning pick. Please note: This does not guarantee a profit.
