@@ -117,17 +117,10 @@ export default function PicksPage() {
     setModal({ open: true, pickId });
   }
 
-  async function confirmUnlock() {
-    if (!modal.pickId || !user?.id) return;
-    try {
-      await client.mutate({ mutation: UNLOCK_PICK, variables: { userId: String(user.id), pickId: String(modal.pickId) } });
-      console.info("Pick Unlocked!");
-      setUnlockedIds((prev) => new Set(prev).add(modal.pickId!));
-      setModal({ open: false });
-      setTimeout(() => router.push(`/pick/${modal.pickId}`), 300);
-    } catch (e) {
-      console.error("Failed to unlock pick", e);
-    }
+  function onUnlocked(pickId: number) {
+    console.info("Pick Unlocked!");
+    setUnlockedIds((prev) => new Set(prev).add(pickId));
+    setTimeout(() => router.push(`/pick/${pickId}`), 300);
   }
 
   return (
@@ -200,8 +193,10 @@ export default function PicksPage() {
       <UnlockPickModal
         open={modal.open}
         credits={userCredits}
+        userId={user?.id}
+        pickId={modal.pickId}
         onClose={() => setModal({ open: false })}
-        onConfirm={confirmUnlock}
+        onUnlocked={onUnlocked}
       />
     </div>
   );

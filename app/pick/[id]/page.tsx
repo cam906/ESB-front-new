@@ -1,9 +1,9 @@
 import { notFound } from "next/navigation";
 
-type Params = { params: { id: string } };
+type Params = { params: Promise<{ id: string }> };
 
-export default function PickDetailPage({ params }: Params) {
-  const { id } = params;
+export default async function PickDetailPage({ params }: Params) {
+  const { id } = await params;
   if (!id) {
     notFound();
   }

@@ -233,20 +233,55 @@ const resolvers = {
       if (!currentUser) throw new Error('Unauthorized');
       const isAdmin = isCurrentUserAdmin(currentUser);
       const targetUserId = Number(args.userId);
+      const pickIdNum = Number(args.pickId);
       if (!isAdmin && currentUser.id !== targetUserId) throw new Error('Forbidden');
 
+      const [user, pick] = await Promise.all([
+        prisma.user.findUnique({ where: { id: targetUserId } }),
+        prisma.pick.findUnique({ where: { id: pickIdNum } }),
+      ]);
+
+      if (!user) throw new Error('User not found');
+      if (!pick) throw new Error('Pick not found');
+
+      // If already unlocked, return existing without charging credits again
       const existing = await prisma.unlockedPick.findFirst({
-        where: { UserId: targetUserId, PickId: Number(args.pickId) },
+        where: { UserId: targetUserId, PickId: pickIdNum },
       });
       if (existing) return existing;
-      return prisma.unlockedPick.create({
-        data: {
-          UserId: targetUserId,
-          PickId: Number(args.pickId),
-          createdAt: new Date(),
-          updatedAt: new Date(),
-        },
+
+      if ((user.credits ?? 0) < 1) throw new Error('Insufficient credits');
+
+      const created = await prisma.$transaction(async (tx) => {
+        // Double-check within transaction to avoid race
+        const already = await tx.unlockedPick.findFirst({
+          where: { UserId: targetUserId, PickId: pickIdNum },
+        });
+        if (already) return already;
+
+        await tx.user.update({
+          where: { id: targetUserId },
+          data: { credits: { decrement: 1 }, updatedAt: new Date() },
+        });
+
+        const unlocked = await tx.unlockedPick.create({
+          data: {
+            UserId: targetUserId,
+            PickId: pickIdNum,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+          },
+        });
+
+        await tx.pick.update({
+          where: { id: pickIdNum },
+          data: { cntUnlocked: { increment: 1 }, updatedAt: new Date() },
+        });
+
+        return unlocked;
       });
+
+      return created;
     },
   },
 };
