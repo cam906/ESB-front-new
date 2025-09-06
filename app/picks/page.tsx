@@ -28,7 +28,6 @@ const LIST_PICKS = gql`
 `;
 const LIST_UNLOCKED = gql`query Unlocked($userId: ID!) { unlockedPicks(userId: $userId) { PickId } }`;
 const GET_COMPETITORS = gql`query Competitors($sportId: Int) { competitors(sportId: $sportId) { id name logo } }`;
-const UNLOCK_PICK = gql`mutation Unlock($userId: ID!, $pickId: ID!) { unlockPick(userId: $userId, pickId: $pickId) { id } }`;
 
 function createClient() {
   return new ApolloClient({
