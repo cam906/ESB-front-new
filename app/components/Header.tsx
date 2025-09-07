@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { useAuth } from "../lib/useAuth";
+import { signInWithRedirect } from "aws-amplify/auth";
 
 export default function Header() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -50,6 +51,16 @@ export default function Header() {
     localStorage.setItem("color-theme", next ? "dark" : "light");
   }
 
+  const handleSignIn = async () => {
+    try {
+      // This will redirect the user to the Cognito Hosted UI
+      await signInWithRedirect();
+    } catch (error) {
+      console.error("Error signing in:", error);
+    }
+  };
+
+
   return (
     <>
       <header className="dark:bg-gray-900 bg-white py-4 px-8 shadow-md sticky top-0 z-40">
@@ -74,7 +85,7 @@ export default function Header() {
             {!isAuthenticated && (
               <>
                 <Link href="/signup" className="bg-primary text-black font-bold py-2 px-4 rounded-lg">Sign Up</Link>
-                <Link href="/signin" className="dark:text-gray-300 hover:text-primary">Sign In</Link>
+                <button onClick={handleSignIn} className="bg-primary text-black font-bold py-2 px-4 rounded-lg">Sign In</button>
               </>
             )}
 

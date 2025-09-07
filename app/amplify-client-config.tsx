@@ -1,0 +1,31 @@
+// app/amplify-client-config.tsx
+"use client";
+
+import { Amplify } from "aws-amplify";
+import { Authenticator } from "@aws-amplify/ui-react";
+
+// The Authenticator.Provider makes authentication state globally available
+export default function AuthenticatorProvider({ children }: { children: React.ReactNode; }) {
+  // Configure Amplify once, using the generated outputs file
+  Amplify.configure(({
+    Auth: {
+      Cognito: {
+        userPoolId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_ID ?? "",
+        userPoolClientId: process.env.NEXT_PUBLIC_COGNITO_USER_POOL_CLIENT_ID ?? "",
+        // Optional, but highly recommended for most scenarios
+        identityPoolId: process.env.NEXT_PUBLIC_IDENTITY_POOL_ID ?? "",
+        loginWith: {
+          oauth: {
+            domain: process.env.NEXT_PUBLIC_COGNITO_DOMAIN ?? "",
+            scopes: ["openid", "email", "phone", "profile"],
+            redirectSignIn: ["http://localhost:3000/"],
+            redirectSignOut: ["http://localhost:3000/"],
+            responseType: "code", // or "token"
+          },
+        },
+      },
+    },
+  }));
+
+  return <Authenticator.Provider>{children}</Authenticator.Provider>;
+}

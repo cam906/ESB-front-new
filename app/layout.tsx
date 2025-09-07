@@ -4,6 +4,7 @@ import { Poppins } from "next/font/google";
 import "./globals.css";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
+import AuthenticatorProvider from "./amplify-client-config";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,9 +38,11 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased`}
       >
-        <Header />
-        {children}
-        <Footer />
+        <AuthenticatorProvider>
+          <Header />
+          {children}
+          <Footer />
+        </AuthenticatorProvider>
       </body>
     </html>
   );
