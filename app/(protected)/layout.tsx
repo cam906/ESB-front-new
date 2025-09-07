@@ -1,10 +1,10 @@
-import { redirect } from "next/navigation";
-import { getCurrentUser } from "@/app/lib/currentUser";
+"use client";
+import { Authenticator } from "@aws-amplify/ui-react";
 
-export default async function ProtectedLayout({ children }: { children: React.ReactNode }) {
-  const user = await getCurrentUser();
-  if (!user) redirect('/signin');
-  return <>{children}</>;
+export default function ProtectedLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <Authenticator>{({ signOut, user }) => <>{children}</>}</Authenticator>
+  );
 }
 
 

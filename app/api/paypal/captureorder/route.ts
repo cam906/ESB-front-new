@@ -1,12 +1,12 @@
 import prisma from '@/prisma';
 import client from '@/app/lib/paypal';
 import paypal from '@paypal/checkout-server-sdk';
-import { getCurrentUser } from '@/app/lib/currentUser';
+import { getCurrentUserFromRequest } from '@/app/lib/cognitoServer';
 
 
 export async function POST(request: Request) {
   try {
-    const currentUser = await getCurrentUser();
+    const currentUser = await getCurrentUserFromRequest(request);
     if (!currentUser) return Response.json({ success: false, message: 'Unauthorized' }, { status: 401 });
 
     const body = await request.json().catch(() => ({}));

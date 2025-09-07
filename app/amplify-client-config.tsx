@@ -20,7 +20,7 @@ export default function AuthenticatorProvider({ children }: { children: React.Re
             scopes: ["openid", "email", "phone", "profile"],
             redirectSignIn: ["http://localhost:3000/"],
             redirectSignOut: ["http://localhost:3000/"],
-            responseType: "code", // or "token"
+            responseType: "token",
           },
         },
       },

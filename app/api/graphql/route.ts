@@ -1,6 +1,6 @@
 import { createSchema, createYoga } from 'graphql-yoga';
 import prisma from '@/prisma';
-import { getCurrentUser, isCurrentUserAdmin } from '@/app/lib/currentUser';
+import { getCurrentUserFromRequest, isAdminUser } from '@/app/lib/cognitoServer';
 
 const typeDefs = /* GraphQL */ `
   scalar Date
@@ -119,9 +119,9 @@ const resolvers = {
     },
   },
   Query: {
-    users: async (_: unknown, args: { limit?: number; offset?: number }) => {
-      const currentUser = await getCurrentUser();
-      if (!currentUser || !isCurrentUserAdmin(currentUser)) {
+    users: async (_: unknown, args: { limit?: number; offset?: number }, ctx: { request: Request }) => {
+      const currentUser = await getCurrentUserFromRequest(ctx.request);
+      if (!currentUser || !isAdminUser(currentUser)) {
         throw new Error('Forbidden');
       }
       return prisma.user.findMany({
@@ -130,9 +130,9 @@ const resolvers = {
         orderBy: { createdAt: 'desc' },
       });
     },
-    user: async (_: unknown, args: { id: string }) => {
-      const currentUser = await getCurrentUser();
-      const isAdmin = isCurrentUserAdmin(currentUser);
+    user: async (_: unknown, args: { id: string }, ctx: { request: Request }) => {
+      const currentUser = await getCurrentUserFromRequest(ctx.request);
+      const isAdmin = isAdminUser(currentUser);
       const requestedId = Number(args.id);
       if (!currentUser) throw new Error('Unauthorized');
       if (!isAdmin && currentUser.id !== requestedId) {
@@ -165,10 +165,10 @@ const resolvers = {
     pick: async (_: unknown, args: { id: string }) => {
       return prisma.pick.findUnique({ where: { id: Number(args.id) } });
     },
-    me: async () => {
-      // Basic passthrough to /api/me would require HTTP call; instead, reuse models similarly by reading cookie is nontrivial here.
-      // Keep a minimal resolver returning null; frontend uses /api/me for auth already and only needs credits for convenience.
-      return null;
+    me: async (_: unknown, __: unknown, ctx: { request: Request }) => {
+      const currentUser = await getCurrentUserFromRequest(ctx.request);
+      if (!currentUser?.id) return null;
+      return prisma.user.findUnique({ where: { id: currentUser.id } });
     },
     sports: async () => {
       return prisma.sport.findMany({ orderBy: { title: 'asc' } });
@@ -178,19 +178,19 @@ const resolvers = {
       if (typeof args.sportId === 'number') where.SportId = args.sportId;
       return prisma.competitor.findMany({ where, orderBy: { name: 'asc' } });
     },
-    unlockedPicks: async (_: unknown, args: { userId: string }) => {
-      const currentUser = await getCurrentUser();
+    unlockedPicks: async (_: unknown, args: { userId: string }, ctx: { request: Request }) => {
+      const currentUser = await getCurrentUserFromRequest(ctx.request);
       if (!currentUser) throw new Error('Unauthorized');
-      const isAdmin = isCurrentUserAdmin(currentUser);
+      const isAdmin = isAdminUser(currentUser);
       const effectiveUserId = isAdmin ? Number(args.userId) : currentUser.id;
       return prisma.unlockedPick.findMany({
         where: { UserId: effectiveUserId },
         orderBy: { createdAt: 'desc' },
       });
     },
-    creditPurchases: async (_: unknown, args: { limit?: number; offset?: number; userId?: number }) => {
-      const currentUser = await getCurrentUser();
-      const admin = isCurrentUserAdmin(currentUser);
+    creditPurchases: async (_: unknown, args: { limit?: number; offset?: number; userId?: number }, ctx: { request: Request }) => {
+      const currentUser = await getCurrentUserFromRequest(ctx.request);
+      const admin = isAdminUser(currentUser);
 
       const where: Record<string, unknown> = {};
       if (!admin) {
@@ -228,10 +228,10 @@ const resolvers = {
     },
   },
   Mutation: {
-    unlockPick: async (_: unknown, args: { userId: string; pickId: string }) => {
-      const currentUser = await getCurrentUser();
+    unlockPick: async (_: unknown, args: { userId: string; pickId: string }, ctx: { request: Request }) => {
+      const currentUser = await getCurrentUserFromRequest(ctx.request);
       if (!currentUser) throw new Error('Unauthorized');
-      const isAdmin = isCurrentUserAdmin(currentUser);
+      const isAdmin = isAdminUser(currentUser);
       const targetUserId = Number(args.userId);
       const pickIdNum = Number(args.pickId);
       if (!isAdmin && currentUser.id !== targetUserId) throw new Error('Forbidden');

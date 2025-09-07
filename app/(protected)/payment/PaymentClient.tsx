@@ -1,10 +1,11 @@
 "use client";
 import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
-import { useAuth } from '@/app/lib/useAuth';
+import { useMe } from '@/app/lib/useMe';
+import { authFetch } from '@/app/lib/authFetch';
 import { useRouter } from 'next/navigation';
 
 export default function PaymentClient({ amount, packageId }: { amount: string; packageId: number }) {
-  const { user } = useAuth();
+  const { user } = useMe();
   const router = useRouter();
 
   const initialOptions = {
@@ -19,7 +20,7 @@ export default function PaymentClient({ amount, packageId }: { amount: string; p
         <PayPalButtons
           style={{ layout: 'vertical', shape: 'rect', label: 'pay' }}
           createOrder={async () => {
-            const res = await fetch('/api/paypal/createorder', {
+            const res = await authFetch('/api/paypal/createorder', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ order_price: amount, user_id: user?.id, package_id: packageId }),
@@ -29,7 +30,7 @@ export default function PaymentClient({ amount, packageId }: { amount: string; p
             return data.data.order.id;
           }}
           onApprove={async (data) => {
-            const res = await fetch('/api/paypal/captureorder', {
+            const res = await authFetch('/api/paypal/captureorder', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({ orderID: data.orderID, package_id: packageId }),

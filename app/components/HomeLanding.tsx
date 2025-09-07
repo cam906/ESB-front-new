@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useMemo, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useAuth } from "@/app/lib/useAuth";
+import { useMe } from "@/app/lib/useMe";
+import { signInWithRedirect } from "aws-amplify/auth";
 
 type Package = {
   id: number;
@@ -13,7 +14,7 @@ type Package = {
 
 export default function HomeLanding({ packages }: { packages: Package[] }) {
   const router = useRouter();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated } = useMe();
   useEffect(() => {
     const carousel = document.getElementById("package-carousel");
     const platinum = document.getElementById("platinum-card");
@@ -117,7 +118,7 @@ export default function HomeLanding({ packages }: { packages: Package[] }) {
               <p className="dark:text-gray-400 text-gray-300">{pkg.description}</p>
               <button
                 onClick={() => {
-                  if (!isAuthenticated) router.push('/signup');
+                  if (!isAuthenticated) signInWithRedirect();
                   else router.push(`/payment?packageId=${pkg.id}`);
                 }}
                 className="mt-auto w-full text-center btn-primary text-black font-bold py-2 px-4 rounded-lg mt-6"
@@ -139,7 +140,7 @@ export default function HomeLanding({ packages }: { packages: Package[] }) {
               <p className="text-dark">{platinumPackage.description}</p>
               <button
                 onClick={() => {
-                  if (!isAuthenticated) router.push('/signup');
+                  if (!isAuthenticated) signInWithRedirect();
                   else router.push(`/payment?packageId=${platinumPackage.id}`);
                 }}
                 className="mt-auto w-full text-center bg-accent text-white font-bold py-2 px-4 rounded-lg mt-6 platinum-btn"
@@ -210,7 +211,7 @@ export default function HomeLanding({ packages }: { packages: Package[] }) {
       <div className="bg-primary rounded-lg text-center p-12 container mx-auto gutters">
         <h2 className="text-3xl font-bold text-black mb-4">Ready to Start Winning?</h2>
         <p className="text-black mb-8">Join 1,200+ successful bettors and turn your basketball knowledge into profit.</p>
-        <a href="/signup" className="bg-white text-black font-bold py-3 px-8 rounded-lg">Get Started Today</a>
+        <button onClick={() => signInWithRedirect()} className="bg-white text-black font-bold py-3 px-8 rounded-lg">Get Started Today</button>
       </div>
 
       <section className="section-spacing container mx-auto gutters max-w-4xl">

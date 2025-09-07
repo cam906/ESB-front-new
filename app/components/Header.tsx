@@ -3,15 +3,16 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { useAuth } from "../lib/useAuth";
-import { signInWithRedirect } from "aws-amplify/auth";
+import { useAuthenticator } from "@aws-amplify/ui-react";
+import { signInWithRedirect, signOut } from "aws-amplify/auth";
 
 export default function Header() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
-  const { user, isAuthenticated } = useAuth();
+  const { user, authStatus } = useAuthenticator((c) => [c.user, c.authStatus]);
+  const isAuthenticated = authStatus === 'authenticated';
 
   useEffect(() => {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -60,6 +61,14 @@ export default function Header() {
     }
   };
 
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
 
   return (
     <>
@@ -78,28 +87,29 @@ export default function Header() {
               <Link href="/#packages" className="dark:text-gray-300 hover:text-primary">Packages</Link>
             )}
 
-            {isAuthenticated && user?.role && (user?.role.includes('ADMIN') || user?.role.includes('SUPERADMIN')) && (
+            {/* Admin link visibility can be refined using a separate `useMe` hook */}
+            {false && (
               <Link href="/admin" className="py-2 px-3 hover:text-primary">Admin</Link>
             )}
 
             {!isAuthenticated && (
               <>
-                <Link href="/signup" className="bg-primary text-black font-bold py-2 px-4 rounded-lg">Sign Up</Link>
+                <button onClick={handleSignIn} className="bg-primary text-black font-bold py-2 px-4 rounded-lg">Sign Up</button>
                 <button onClick={handleSignIn} className="bg-primary text-black font-bold py-2 px-4 rounded-lg">Sign In</button>
               </>
             )}
 
             {isAuthenticated && (
               <div className="relative">
-                <button onClick={() => setUserOpen((v) => !v)} className="dark:text-gray-300 hover:text-primary">{user?.email || 'Account'}</button>
+                <button onClick={() => setUserOpen((v) => !v)} className="dark:text-gray-300 hover:text-primary">{(user as unknown as { signInDetails?: { loginId?: string } })?.signInDetails?.loginId || 'Account'}</button>
                 {userOpen && (
                   <div className="absolute mt-2 right-0 w-56 card p-2 z-50">
                     <div className="flex flex-col">
                       <Link href="/account" className="py-2 px-3 hover:text-primary">Your Account</Link>
-                      {!(user?.role === 'admin' || user?.role === 'superadmin') && (
+                      {true && (
                         <Link href="/purchasehistory" className="py-2 px-3 hover:text-primary">Purchase History</Link>
                       )}
-                      <Link href="/signout" className="py-2 px-3 hover:text-primary">Sign Out</Link>
+                      <button onClick={handleSignOut} className="py-2 px-3 text-left hover:text-primary">Sign Out</button>
                     </div>
                   </div>
                 )}
@@ -138,7 +148,7 @@ export default function Header() {
           {isAuthenticated && (
             <Link href="/#packages" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Packages</Link>
           )}
-          {isAuthenticated && (user?.role === 'admin' || user?.role === 'superadmin') && (
+          {false && (
             <>
               <Link href="/admin" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Admin Dashboard</Link>
               <Link href="/admin/sports" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Manage Sports</Link>
@@ -151,17 +161,17 @@ export default function Header() {
           )}
           {!isAuthenticated && (
             <>
-              <Link href="/signup" className="mb-4 bg-primary text-black font-bold py-2 px-4 rounded-lg text-center" onClick={() => setIsMobileOpen(false)}>Sign Up</Link>
-              <Link href="/signin" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Sign In</Link>
+              <button className="mb-4 bg-primary text-black font-bold py-2 px-4 rounded-lg text-center" onClick={() => { setIsMobileOpen(false); handleSignIn(); }}>Sign Up</button>
+              <button className="mb-4 dark:text-gray-300 hover:text-primary text-left" onClick={() => { setIsMobileOpen(false); handleSignIn(); }}>Sign In</button>
             </>
           )}
           {isAuthenticated && (
             <>
               <Link href="/account" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Your Account</Link>
-              {!(user?.role === 'admin' || user?.role === 'superadmin') && (
+              {true && (
                 <Link href="/purchasehistory" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Purchase History</Link>
               )}
-              <Link href="/signout" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Sign Out</Link>
+              <button onClick={handleSignOut} className="mb-2 text-left dark:text-gray-300 hover:text-primary">Sign Out</button>
             </>
           )}
         </div>

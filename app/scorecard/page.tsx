@@ -1,9 +1,10 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { ApolloClient, InMemoryCache, gql, HttpLink } from "@apollo/client";
+import { gql } from "@apollo/client";
+import { createApolloClient } from "../lib/authFetch";
 import { useRouter } from "next/navigation";
 import ScoreCardItem from "../components/ScoreCardItem";
-import { useAuth } from "../lib/useAuth";
+import { useMe } from "../lib/useMe";
 
 type Sport = { id: number; title: string };
 type Pick = {
@@ -27,17 +28,12 @@ const LIST_PICKS = gql`
 `;
 const GET_COMPETITORS = gql`query Competitors($sportId: Int) { competitors(sportId: $sportId) { id name logo } }`;
 
-function createClient() {
-  return new ApolloClient({
-    link: new HttpLink({ uri: "/api/graphql", credentials: "same-origin" }),
-    cache: new InMemoryCache(),
-  });
-}
+function createClient() { return createApolloClient(); }
 
 export default function ScorecardPage() {
   const router = useRouter();
-  const { isAuthenticated, user } = useAuth();
-  const isAdmin = !!user?.role && user.role.includes("admin");
+  const { isAuthenticated, user } = useMe();
+  const isAdmin = !!user?.roles && (user.roles.includes("ADMIN") || user.roles.includes("SUPERADMIN") || user.roles.includes("admin") || user.roles.includes("superadmin"));
 
   const client = useMemo(() => createClient(), []);
 

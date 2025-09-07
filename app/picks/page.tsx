@@ -1,10 +1,11 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { ApolloClient, InMemoryCache, gql, HttpLink } from "@apollo/client";
+import { createApolloClient } from "../lib/authFetch";
 import { useRouter } from "next/navigation";
 import ScoreCardItem from "../components/ScoreCardItem";
 import UnlockPickModal from "../components/UnlockPickModal";
-import { useAuth } from "../lib/useAuth";
+import { useMe } from "../lib/useMe";
 
 type Sport = { id: number; title: string };
 type Pick = {
@@ -29,17 +30,12 @@ const LIST_PICKS = gql`
 const LIST_UNLOCKED = gql`query Unlocked($userId: ID!) { unlockedPicks(userId: $userId) { PickId } }`;
 const GET_COMPETITORS = gql`query Competitors($sportId: Int) { competitors(sportId: $sportId) { id name logo } }`;
 
-function createClient() {
-  return new ApolloClient({
-    link: new HttpLink({ uri: "/api/graphql", credentials: "same-origin" }),
-    cache: new InMemoryCache(),
-  });
-}
+function createClient() { return createApolloClient(); }
 
 export default function PicksPage() {
   const router = useRouter();
-  const { user, isAuthenticated } = useAuth();
-  const isAdmin = !!user?.role && user.role.includes("admin");
+  const { user, isAuthenticated } = useMe();
+  const isAdmin = !!user?.roles && (user.roles.includes("ADMIN") || user.roles.includes("SUPERADMIN") || user.roles.includes("admin") || user.roles.includes("superadmin"));
 
   const client = useMemo(() => createClient(), []);
 
@@ -89,16 +85,13 @@ export default function PicksPage() {
   useEffect(() => {
     async function loadUserExtras() {
       if (!isAuthenticated || !user?.id) return;
-      const [{ data: u }, meRes] = await Promise.all([
-        client.query<{ unlockedPicks: { PickId: number }[] }>({ query: LIST_UNLOCKED, variables: { userId: String(user.id) }, fetchPolicy: "no-cache" }),
-        fetch("/api/me", { credentials: "include", cache: "no-store" }).then((r) => r.ok ? r.json() : null),
-      ]);
+      const { data: u } = await client.query<{ unlockedPicks: { PickId: number }[] }>({ query: LIST_UNLOCKED, variables: { userId: String(user.id) }, fetchPolicy: "no-cache" });
       const ids = new Set<number>((u?.unlockedPicks || []).map((x: { PickId: number }) => x.PickId));
       setUnlockedIds(ids);
-      setUserCredits(meRes?.credits ?? 0);
+      setUserCredits(user?.credits ?? 0);
     }
     loadUserExtras();
-  }, [client, isAuthenticated, user?.id]);
+  }, [client, isAuthenticated, user?.id, user?.credits]);
 
   function isUnlocked(p: Pick) {
     return isAuthenticated && (isAdmin || unlockedIds.has(p.id));

@@ -1,7 +1,8 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
 import { ApolloClient, InMemoryCache, gql, HttpLink } from "@apollo/client";
-import { useAuth } from "@/app/lib/useAuth";
+import { createApolloClient } from "@/app/lib/authFetch";
+import { useMe } from "@/app/lib/useMe";
 
 type Purchase = {
   id: number;
@@ -41,16 +42,11 @@ const LIST_PURCHASES = gql`
   }
 `;
 
-function createClient() {
-  return new ApolloClient({
-    link: new HttpLink({ uri: "/api/graphql", credentials: "same-origin" }),
-    cache: new InMemoryCache(),
-  });
-}
+function createClient() { return createApolloClient(); }
 
 export default function PurchaseHistoryPage() {
-  const { user, isLoading } = useAuth();
-  const isAdmin = !!user?.role && user.role.includes("ADMIN");
+  const { user } = useMe();
+  const isAdmin = !!user?.roles && (user.roles.includes("ADMIN") || user.roles.includes("SUPERADMIN"));
 
   const client = useMemo(() => createClient(), []);
 
@@ -62,7 +58,6 @@ export default function PurchaseHistoryPage() {
 
   useEffect(() => {
     async function loadPurchases() {
-      if (isLoading) return;
       setIsFetching(true);
       try {
         const offset = (page - 1) * pageSize;
@@ -80,7 +75,7 @@ export default function PurchaseHistoryPage() {
       }
     }
     loadPurchases();
-  }, [client, isAdmin, isLoading, page, pageSize, user]);
+  }, [client, isAdmin, page, pageSize, user]);
 
   function formatPrice(cents?: number | null) {
     if (typeof cents !== "number") return "$0.00";

@@ -1,10 +1,10 @@
 "use client";
 import { useState } from "react";
-import { useAuth } from "@/app/lib/useAuth";
+import { useMe } from "@/app/lib/useMe";
 import Link from "next/link";
 
 export default function AccountPage() {
-  const { user } = useAuth();
+  const { user } = useMe();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [mateEmail, setMateEmail] = useState("");
 
