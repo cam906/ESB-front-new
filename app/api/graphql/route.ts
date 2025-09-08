@@ -93,6 +93,7 @@ const typeDefs = /* GraphQL */ `
     unlockedPicks(userId: ID!): [UnlockedPick!]!
     me: User
     creditPurchases(limit: Int = 20, offset: Int = 0, userId: Int): PaginatedCreditPurchases!
+    packages: [Package!]!
   }
 
   type Mutation {
@@ -142,8 +143,11 @@ const resolvers = {
     },
     picks: async (
       _: unknown,
-      args: { limit?: number; offset?: number; status?: number; statuses?: number[]; sportId?: number; sortBy?: string; sortDir?: string }
+      args: { limit?: number; offset?: number; status?: number; statuses?: number[]; sportId?: number; sortBy?: string; sortDir?: string },
+      ctx: { request: Request }
     ) => {
+      const currentUser = await getCurrentUserFromRequest(ctx.request);
+      if (!currentUser) throw new Error('Unauthorized');
       const where: Record<string, unknown> = {};
       if (Array.isArray(args.statuses) && args.statuses.length > 0) {
         where.status = { in: args.statuses };
@@ -162,21 +166,30 @@ const resolvers = {
         orderBy: { [sortBy]: sortDir as 'asc' | 'desc' },
       });
     },
-    pick: async (_: unknown, args: { id: string }) => {
+    pick: async (_: unknown, args: { id: string }, ctx: { request: Request }) => {
+      const currentUser = await getCurrentUserFromRequest(ctx.request);
+      if (!currentUser) throw new Error('Unauthorized');
       return prisma.pick.findUnique({ where: { id: Number(args.id) } });
     },
     me: async (_: unknown, __: unknown, ctx: { request: Request }) => {
       const currentUser = await getCurrentUserFromRequest(ctx.request);
-      if (!currentUser?.id) return null;
+      if (!currentUser?.id) throw new Error('Unauthorized');
       return prisma.user.findUnique({ where: { id: currentUser.id } });
     },
-    sports: async () => {
+    sports: async (_: unknown, __: unknown, ctx: { request: Request }) => {
+      const currentUser = await getCurrentUserFromRequest(ctx.request);
+      if (!currentUser) throw new Error('Unauthorized');
       return prisma.sport.findMany({ orderBy: { title: 'asc' } });
     },
-    competitors: async (_: unknown, args: { sportId?: number }) => {
+    competitors: async (_: unknown, args: { sportId?: number }, ctx: { request: Request }) => {
+      const currentUser = await getCurrentUserFromRequest(ctx.request);
+      if (!currentUser) throw new Error('Unauthorized');
       const where: Record<string, unknown> = {};
       if (typeof args.sportId === 'number') where.SportId = args.sportId;
       return prisma.competitor.findMany({ where, orderBy: { name: 'asc' } });
+    },
+    packages: async () => {
+      return prisma.package.findMany({ orderBy: { createdAt: 'asc' } });
     },
     unlockedPicks: async (_: unknown, args: { userId: string }, ctx: { request: Request }) => {
       const currentUser = await getCurrentUserFromRequest(ctx.request);
