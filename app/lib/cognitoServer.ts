@@ -120,7 +120,7 @@ export async function getDbUserFromClaims(claims: VerifiedClaims | null): Promis
 
 export async function getCurrentUserFromRequest(request: Request): Promise<DbCurrentUser | null> {
   // Prefer Authorization header
-  let authz = request.headers.get('authorization') || request.headers.get('Authorization') || undefined;
+  const authz = request.headers.get('authorization') || request.headers.get('Authorization') || undefined;
   let claims = await verifyBearerToken(authz);
   if (claims) return getDbUserFromClaims(claims);
 
