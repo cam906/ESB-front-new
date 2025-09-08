@@ -8,9 +8,10 @@ const typeDefs = /* GraphQL */ `
   type User {
     id: ID!
     email: String!
-    name: String!
+    name: String
     credits: Int!
     roles: String
+    myReferralCode: String
     createdAt: Date!
     updatedAt: Date!
   }
