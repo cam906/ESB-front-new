@@ -17,10 +17,10 @@ export default function AuthenticatorProvider({ children }: { children: React.Re
         loginWith: {
           oauth: {
             domain: process.env.NEXT_PUBLIC_COGNITO_DOMAIN ?? "",
-            scopes: ["openid", "email", "phone", "profile"],
+            scopes: ["openid", "email", "phone"],
             redirectSignIn: ["http://localhost:3000/"],
             redirectSignOut: ["http://localhost:3000/"],
-            responseType: "token",
+            responseType: "code",
           },
         },
       },
