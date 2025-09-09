@@ -99,6 +99,31 @@ const typeDefs = /* GraphQL */ `
 
   type Mutation {
     unlockPick(userId: ID!, pickId: ID!): UnlockedPick!
+    createPick(
+      SportId: Int!,
+      AwayCompetitorId: Int!,
+      HomeCompetitorId: Int!,
+      status: Int!,
+      title: String!,
+      slug: String,
+      matchTime: Date!,
+      analysis: String!,
+      summary: String!,
+      isFeatured: Boolean
+    ): Pick!
+    updatePick(
+      id: ID!,
+      SportId: Int,
+      AwayCompetitorId: Int,
+      HomeCompetitorId: Int,
+      status: Int,
+      title: String,
+      slug: String,
+      matchTime: Date,
+      analysis: String,
+      summary: String,
+      isFeatured: Boolean
+    ): Pick!
   }
 `;
 
@@ -296,6 +321,60 @@ const resolvers = {
       });
 
       return created;
+    },
+    createPick: async (
+      _: unknown,
+      args: {
+        SportId: number; AwayCompetitorId: number; HomeCompetitorId: number; status: number; title: string; slug?: string | null; matchTime: Date; analysis: string; summary: string; isFeatured?: boolean | null;
+      },
+      ctx: { request: Request }
+    ) => {
+      const currentUser = await getCurrentUserFromRequest(ctx.request);
+      if (!currentUser || !isAdminUser(currentUser)) throw new Error('Forbidden');
+
+      const created = await prisma.pick.create({
+        data: {
+          SportId: args.SportId,
+          AwayCompetitorId: args.AwayCompetitorId,
+          HomeCompetitorId: args.HomeCompetitorId,
+          status: args.status,
+          title: args.title,
+          slug: args.slug || null,
+          matchTime: new Date(args.matchTime),
+          analysis: args.analysis,
+          summary: args.summary,
+          isFeatured: args.isFeatured ? 1 : 0,
+          cntUnlocked: 0,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      });
+      return created;
+    },
+    updatePick: async (
+      _: unknown,
+      args: {
+        id: string; SportId?: number; AwayCompetitorId?: number; HomeCompetitorId?: number; status?: number; title?: string; slug?: string | null; matchTime?: Date; analysis?: string; summary?: string; isFeatured?: boolean | null;
+      },
+      ctx: { request: Request }
+    ) => {
+      const currentUser = await getCurrentUserFromRequest(ctx.request);
+      if (!currentUser || !isAdminUser(currentUser)) throw new Error('Forbidden');
+      const id = Number(args.id);
+      const data: Record<string, unknown> = { updatedAt: new Date() };
+      if (typeof args.SportId === 'number') data.SportId = args.SportId;
+      if (typeof args.AwayCompetitorId === 'number') data.AwayCompetitorId = args.AwayCompetitorId;
+      if (typeof args.HomeCompetitorId === 'number') data.HomeCompetitorId = args.HomeCompetitorId;
+      if (typeof args.status === 'number') data.status = args.status;
+      if (typeof args.title === 'string') data.title = args.title;
+      if (typeof args.slug === 'string' || args.slug === null) data.slug = args.slug ?? null;
+      if (args.matchTime) data.matchTime = new Date(args.matchTime);
+      if (typeof args.analysis === 'string') data.analysis = args.analysis;
+      if (typeof args.summary === 'string') data.summary = args.summary;
+      if (typeof args.isFeatured === 'boolean') data.isFeatured = args.isFeatured ? 1 : 0;
+
+      const updated = await prisma.pick.update({ where: { id }, data });
+      return updated;
     },
   },
 };

@@ -99,9 +99,12 @@ export default function Header() {
               <Link href="/#packages" className="dark:text-gray-300 hover:text-primary">Packages</Link>
             )}
 
-            {/* Admin link */}
             {isAdmin && (
-              <Link href="/admin" className="py-2 px-3 hover:text-primary">Admin</Link>
+              <>
+                <Link href="/add-picks" className="dark:text-gray-300 hover:text-primary">Add Picks</Link>
+                <Link href="/edit-picks" className="dark:text-gray-300 hover:text-primary">Edit Picks</Link>
+                <Link href="/admin" className="py-2 px-3 hover:text-primary">Admin</Link>
+              </>
             )}
 
             {!isAuthenticated && (
@@ -161,20 +164,12 @@ export default function Header() {
             <Link href="/#packages" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Packages</Link>
           )}
           {isAdmin && (
-            <>
-              <Link href="/admin" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Admin Dashboard</Link>
-              <Link href="/admin/sports" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Manage Sports</Link>
-              <Link href="/admin/teams" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Manage Teams</Link>
-              <Link href="/admin/picks" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Manage Picks</Link>
-              <Link href="/admin/users" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Manage Users</Link>
-              <Link href="/admin/packages" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Manage Packages</Link>
-              <Link href="/admin/purchasehistory" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>View Purchase History</Link>
-            </>
+            <Link href="/admin" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Admin</Link>
           )}
           {!isAuthenticated && (
             <>
               <button className="mb-4 bg-primary text-black font-bold py-2 px-4 rounded-lg text-center" onClick={() => { setIsMobileOpen(false); handleSignIn(); }}>Sign Up</button>
-              <button className="mb-4 dark:text-gray-300 hover:text-primary text-left" onClick={() => { setIsMobileOpen(false); handleSignIn(); }}>Sign In</button>
+              <button className="mb-4 bg-primary text-black font-bold py-2 px-4 rounded-lg text-center" onClick={() => { setIsMobileOpen(false); handleSignIn(); }}>Sign In</button>
             </>
           )}
           {isAuthenticated && (
