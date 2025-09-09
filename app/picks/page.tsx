@@ -67,7 +67,7 @@ export default function PicksPage() {
 
   useEffect(() => {
     async function loadPicks() {
-      const status = tab === "LATEST" ? 0 : undefined; // new picks only for Latest
+      const status = 1; // new picks only for Latest
       const { data } = await client.query<{ picks: Pick[] }>({
         query: LIST_PICKS,
         variables: { limit: 20, offset: page * 20, status, sportId: selectedSportId, sortBy: "matchTime", sortDir: "ASC" },

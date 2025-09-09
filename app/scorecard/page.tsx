@@ -62,7 +62,7 @@ export default function ScorecardPage() {
 
   useEffect(() => {
     async function loadPicks() {
-      const statuses = [1, 2, 3];
+      const statuses = [10, 20, 30, 100];
       const { data } = await client.query<{ picks: Pick[] }>({
         query: LIST_PICKS,
         variables: { limit: 30, offset: page * 30, statuses, sportId: selectedSportId, sortBy: "matchTime", sortDir: "DESC" },
@@ -82,12 +82,12 @@ export default function ScorecardPage() {
 
   // Basic client-side stats from currently loaded page
   const totalCompleted = picks.length;
-  const totalWon = picks.filter((p) => p.status === 1).length;
+  const totalWon = picks.filter((p) => p.status === 10).length;
   const overallPct = totalCompleted ? Math.round((totalWon / totalCompleted) * 100) : 0;
   const sevenDaysAgo = new Date();
   sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
   const recent = completedPicks.filter((p) => new Date(p.matchTime) >= sevenDaysAgo);
-  const recentWon = recent.filter((p) => p.status === 1).length;
+  const recentWon = recent.filter((p) => p.status === 10).length;
   const recentPct = recent.length ? Math.round((recentWon / recent.length) * 100) : 0;
 
   return (

@@ -24,23 +24,26 @@ type Props = {
 };
 
 function statusName(status: number) {
-  if (status === 0) return "NEW";
-  if (status === 1) return "WON";
-  if (status === 2) return "LOST";
-  if (status === 3) return "PUSH";
+  if (status === 1) return "NEW";
+  if (status === 10) return "WON";
+  if (status === 20) return "LOST";
+  if (status === 30) return "PUSH";
+  if (status === 100) return "CANCELLED";
   return "UNKNOWN";
 }
 
 function statusColor(status: number) {
-  if (status === 1) return "text-success";
-  if (status === 2) return "text-error";
-  if (status === 3) return "text-yellow-500";
+  if (status === 1) return "text-gray-400";
+  if (status === 10) return "text-success";
+  if (status === 20) return "text-error";
+  if (status === 30) return "text-yellow-500";
+  if (status === 100) return "text-gray-400";
   return "text-gray-400";
 }
 
 export default function ScoreCardItem({ pick, isUnlocked, isAdmin, hideButtons, onShowUnlocked, onUnlock }: Props) {
   const unlocked = isAdmin || isUnlocked;
-  const isNew = pick.status === 0;
+  const isNew = pick.status === 1;
   const dt = new Date(pick.matchTime);
   const timeStr = new Intl.DateTimeFormat(undefined, {
     weekday: "short",
