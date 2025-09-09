@@ -157,7 +157,7 @@ export function isAdminUser(user: DbCurrentUser | null): boolean {
   if (!user.role) return false;
   try {
     const arr = Array.isArray(user.role) ? user.role : JSON.parse(user.role);
-    return Array.isArray(arr) && (arr.includes('ADMIN') || arr.includes('SUPERADMIN') || arr.includes('admin') || arr.includes('superadmin'));
+    return Array.isArray(arr) && (arr.includes('ADMIN') || arr.includes('SUPERADMIN'));
   } catch {
     return false;
   }

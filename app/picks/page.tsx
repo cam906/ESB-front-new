@@ -35,7 +35,7 @@ function createClient() { return createApolloClient(); }
 export default function PicksPage() {
   const router = useRouter();
   const { user, isAuthenticated } = useMe();
-  const isAdmin = !!user?.roles && (user.roles.includes("ADMIN") || user.roles.includes("SUPERADMIN") || user.roles.includes("admin") || user.roles.includes("superadmin"));
+  const isAdmin = !!user?.roles && (user.roles.includes("ADMIN") || user.roles.includes("SUPERADMIN"));
 
   const client = useMemo(() => createClient(), []);
 
@@ -103,7 +103,7 @@ export default function PicksPage() {
 
   function handleUnlock(pickId: number) {
     if (!isAuthenticated) {
-      router.push("/signin");
+      import("aws-amplify/auth").then(({ signInWithRedirect }) => signInWithRedirect());
       return;
     }
     setModal({ open: true, pickId });

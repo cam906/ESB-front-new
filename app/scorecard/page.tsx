@@ -33,7 +33,7 @@ function createClient() { return createApolloClient(); }
 export default function ScorecardPage() {
   const router = useRouter();
   const { isAuthenticated, user } = useMe();
-  const isAdmin = !!user?.roles && (user.roles.includes("ADMIN") || user.roles.includes("SUPERADMIN") || user.roles.includes("admin") || user.roles.includes("superadmin"));
+  const isAdmin = !!user?.roles && (user.roles.includes("ADMIN") || user.roles.includes("SUPERADMIN"));
 
   const client = useMemo(() => createClient(), []);
 
@@ -160,7 +160,7 @@ export default function ScorecardPage() {
                   {isAuthenticated ? (
                     <button className="btn-primary" onClick={() => handleShowUnlocked(p.id)}>Show unlocked pick</button>
                   ) : (
-                    <button className="btn-secondary" onClick={() => router.push('/signin')}>Log In to check options available</button>
+                    <button className="btn-secondary" onClick={() => import('aws-amplify/auth').then(({ signInWithRedirect }) => signInWithRedirect())}>Log In to check options available</button>
                   )}
                 </div>
               </div>

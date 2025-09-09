@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import { signInWithRedirect, signOut } from "aws-amplify/auth";
+import { useMe } from "../lib/useMe";
 
 export default function Header() {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -13,6 +14,17 @@ export default function Header() {
   const panelRef = useRef<HTMLDivElement | null>(null);
   const { user, authStatus } = useAuthenticator((c) => [c.user, c.authStatus]);
   const isAuthenticated = authStatus === 'authenticated';
+  const { user: meUser } = useMe();
+  const isAdmin = (() => {
+    const r = meUser?.roles;
+    if (!r) return false;
+    try {
+      const arr = JSON.parse(r);
+      return Array.isArray(arr) && (arr.includes('ADMIN') || arr.includes('SUPERADMIN'));
+    } catch {
+      return r.includes('ADMIN') || r.includes('SUPERADMIN');
+    }
+  })();
 
   useEffect(() => {
     const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
@@ -87,8 +99,8 @@ export default function Header() {
               <Link href="/#packages" className="dark:text-gray-300 hover:text-primary">Packages</Link>
             )}
 
-            {/* Admin link visibility can be refined using a separate `useMe` hook */}
-            {false && (
+            {/* Admin link */}
+            {isAdmin && (
               <Link href="/admin" className="py-2 px-3 hover:text-primary">Admin</Link>
             )}
 
@@ -148,7 +160,7 @@ export default function Header() {
           {isAuthenticated && (
             <Link href="/#packages" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Packages</Link>
           )}
-          {false && (
+          {isAdmin && (
             <>
               <Link href="/admin" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Admin Dashboard</Link>
               <Link href="/admin/sports" className="mb-2 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Manage Sports</Link>
