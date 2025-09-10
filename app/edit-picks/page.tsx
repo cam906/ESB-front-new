@@ -102,6 +102,7 @@ export default function EditPicksPage() {
     if (!selected) return;
     try {
       setSubmitting(true);
+      const editedId = selected.id;
       await client.mutate({
         mutation: UPDATE_PICK,
         variables: {
@@ -119,10 +120,12 @@ export default function EditPicksPage() {
         },
       });
       alert("Saved");
-      setSelected(null);
-      // refresh
+      // refresh list and keep the same pick selected
       const { data } = await client.query<{ picks: Pick[] }>({ query: LIST_PICKS, variables: { limit: 20, offset: page * 20, sortBy: "matchTime", sortDir: "DESC" }, fetchPolicy: "no-cache" });
-      setItems(data?.picks || []);
+      const refreshed = data?.picks || [];
+      setItems(refreshed);
+      const updatedItem = refreshed.find((p) => p.id === editedId) || null;
+      if (updatedItem) setSelected(updatedItem);
     } catch (e) {
       console.error(e);
       alert("Failed to save pick. Ensure you're an admin.");

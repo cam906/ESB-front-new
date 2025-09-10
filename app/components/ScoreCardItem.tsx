@@ -10,6 +10,7 @@ export type PickItem = {
   status: number; // 0=new
   matchTime: string | Date;
   summary: string;
+  cntUnlocked?: number;
   HomeCompetitor?: Competitor;
   AwayCompetitor?: Competitor;
 };
@@ -42,7 +43,7 @@ function statusColor(status: number) {
 }
 
 export default function ScoreCardItem({ pick, isUnlocked, isAdmin, hideButtons, onShowUnlocked, onUnlock }: Props) {
-  const unlocked = isAdmin || isUnlocked;
+  const unlocked = isUnlocked;
   const isNew = pick.status === 1;
   const dt = new Date(pick.matchTime);
   const timeStr = new Intl.DateTimeFormat(undefined, {
@@ -66,10 +67,17 @@ export default function ScoreCardItem({ pick, isUnlocked, isAdmin, hideButtons, 
         </div>
         <div className="text-center text-sm">
           {isNew ? (
-            <div className="flex items-center justify-center gap-2">
-              <span className="text-xs">{unlocked ? "Unlocked" : "Locked"}</span>
-              <span>{unlocked ? "🔓" : "🔒"}</span>
-            </div>
+            isAdmin ? (
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-xs">Unlocked Count:</span>
+                <span className="font-medium">{pick.cntUnlocked ?? 0}</span>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center gap-2">
+                <span className="text-xs">{unlocked ? "Unlocked" : "Locked"}</span>
+                <span>{unlocked ? "🔓" : "🔒"}</span>
+              </div>
+            )
           ) : (
             <div className={`font-semibold ${statusColor(pick.status)}`}>{statusName(pick.status)}</div>
           )}
@@ -85,7 +93,7 @@ export default function ScoreCardItem({ pick, isUnlocked, isAdmin, hideButtons, 
       {!hideButtons && (
         <div className="mt-2">
           {unlocked ? (
-            <button className="btn-primary" onClick={() => onShowUnlocked?.(pick.id)}>Show unlocked pick</button>
+            <button className="btn-primary" onClick={() => onShowUnlocked?.(pick.id)}>{isAdmin ? "View pick" : "Show unlocked pick"}</button>
           ) : (
             <button className="btn-secondary" onClick={() => onUnlock?.(pick.id)}>Unlock pick</button>
           )}

@@ -373,6 +373,23 @@ const resolvers = {
       if (typeof args.summary === 'string') data.summary = args.summary;
       if (typeof args.isFeatured === 'boolean') data.isFeatured = args.isFeatured ? 1 : 0;
 
+      const previous = await prisma.pick.findUnique({ where: { id }, select: { status: true } });
+      const isTransitionToLost = typeof args.status === 'number' && previous?.status !== 20 && args.status === 20;
+
+      if (isTransitionToLost) {
+        const updated = await prisma.$transaction(async (tx) => {
+          const updatedInner = await tx.pick.update({ where: { id }, data });
+          const unlocked = await tx.unlockedPick.findMany({ where: { PickId: id }, select: { UserId: true } });
+          const userIds = Array.from(new Set(unlocked.map((u) => u.UserId)));
+          for (const userId of userIds) {
+            await tx.user.update({ where: { id: userId }, data: { credits: { increment: 1 }, updatedAt: new Date() } });
+            console.log(`Incremented credits for user ${userId}`);
+          }
+          return updatedInner;
+        });
+        return updated;
+      }
+
       const updated = await prisma.pick.update({ where: { id }, data });
       return updated;
     },

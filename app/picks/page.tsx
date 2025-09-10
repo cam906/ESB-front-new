@@ -17,13 +17,14 @@ type Pick = {
   title: string;
   matchTime: string;
   summary: string;
+  cntUnlocked?: number;
 };
 
 const LIST_SPORTS = gql`query { sports { id title } }`;
 const LIST_PICKS = gql`
   query ListPicks($limit: Int, $offset: Int, $status: Int, $sportId: Int, $sortBy: String, $sortDir: String) {
     picks(limit: $limit, offset: $offset, status: $status, sportId: $sportId, sortBy: $sortBy, sortDir: $sortDir) {
-      id title status matchTime summary SportId AwayCompetitorId HomeCompetitorId
+      id title status matchTime summary SportId AwayCompetitorId HomeCompetitorId cntUnlocked
     }
   }
 `;
@@ -94,7 +95,7 @@ export default function PicksPage() {
   }, [client, isAuthenticated, user?.id, user?.credits]);
 
   function isUnlocked(p: Pick) {
-    return isAuthenticated && (isAdmin || unlockedIds.has(p.id));
+    return isAuthenticated && (isAdmin || unlockedIds.has(+p.id));
   }
 
   function handleShowUnlocked(pickId: number) {
@@ -163,6 +164,7 @@ export default function PicksPage() {
                   status: p.status,
                   matchTime: p.matchTime,
                   summary: p.summary,
+                  cntUnlocked: p.cntUnlocked,
                   HomeCompetitor: competitorsById[p.HomeCompetitorId],
                   AwayCompetitor: competitorsById[p.AwayCompetitorId],
                 }}

@@ -93,10 +93,13 @@ export default function Header() {
 
           <nav className="hidden md:flex items-center space-x-6">
             <Link href="/" className="dark:text-gray-300 hover:text-primary">Home</Link>
-            <Link href="/picks" className="dark:text-gray-300 hover:text-primary">Picks</Link>
-            <Link href="/scorecard" className="dark:text-gray-300 hover:text-primary">Scorecard</Link>
+
             {isAuthenticated && (
-              <Link href="/#packages" className="dark:text-gray-300 hover:text-primary">Packages</Link>
+              <>
+                <Link href="/picks" className="dark:text-gray-300 hover:text-primary">Picks</Link>
+                <Link href="/scorecard" className="dark:text-gray-300 hover:text-primary">Scorecard</Link>
+                <Link href="/#packages" className="dark:text-gray-300 hover:text-primary">Packages</Link>
+              </>
             )}
 
             {isAdmin && (
