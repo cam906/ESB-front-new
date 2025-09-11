@@ -99,6 +99,11 @@ const typeDefs = /* GraphQL */ `
 
   type Mutation {
     unlockPick(userId: ID!, pickId: ID!): UnlockedPick!
+    createCompetitor(
+      SportId: Int!,
+      name: String!,
+      logo: String
+    ): Competitor!
     createPick(
       SportId: Int!,
       AwayCompetitorId: Int!,
@@ -321,6 +326,35 @@ const resolvers = {
       });
 
       return created;
+    },
+    createCompetitor: async (
+      _: unknown,
+      args: { SportId: number; name: string; logo?: string | null },
+      ctx: { request: Request }
+    ) => {
+      const currentUser = await getCurrentUserFromRequest(ctx.request);
+      if (!currentUser || !isAdminUser(currentUser)) throw new Error('Forbidden');
+
+      const now = new Date();
+      try {
+        const created = await prisma.competitor.create({
+          data: {
+            SportId: Number(args.SportId),
+            name: args.name.trim(),
+            logo: args.logo ?? null,
+            createdAt: now,
+            updatedAt: now,
+          },
+        });
+        return created;
+      } catch (e: unknown) {
+        // Handle unique constraint on (SportId, name)
+        const err = e as { code?: string; message?: string };
+        if (err && err.code === 'P2002') {
+          throw new Error('Competitor with this name already exists for the sport');
+        }
+        throw new Error(err?.message || 'Failed to create competitor');
+      }
     },
     createPick: async (
       _: unknown,

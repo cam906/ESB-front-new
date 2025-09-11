@@ -9,7 +9,12 @@ type Sport = { id: number; title: string };
 type Competitor = { id: number; name: string; SportId: number };
 
 const LIST_SPORTS = gql`query { sports { id title } }`;
-const LIST_COMPETITORS = gql`query ($sportId: Int) { competitors(sportId: $sportId) { id name SportId } }`;
+const LIST_COMPETITORS = gql`query ($sportId: Int) { competitors(sportId: $sportId) { id name SportId logo } }`;
+const CREATE_COMPETITOR = gql`
+  mutation CreateCompetitor($SportId: Int!, $name: String!, $logo: String) {
+    createCompetitor(SportId: $SportId, name: $name, logo: $logo) { id name SportId logo }
+  }
+`;
 const CREATE_PICK = gql`
   mutation CreatePick(
     $SportId: Int!, $AwayCompetitorId: Int!, $HomeCompetitorId: Int!, $status: Int!, $title: String!, $slug: String, $matchTime: Date!, $analysis: String!, $summary: String!, $isFeatured: Boolean
@@ -51,6 +56,7 @@ export default function AddPicksPage() {
     isFeatured: false,
   });
   const [submitting, setSubmitting] = useState(false);
+  const [showAddCompetitor, setShowAddCompetitor] = useState<"away" | null>(null);
 
   useEffect(() => {
     async function loadSports() {
@@ -127,7 +133,17 @@ export default function AddPicksPage() {
             </select>
           </label>
           <label className="grid gap-1">
-            <span>Away Competitor</span>
+            <span className="flex items-center justify-between">
+              <span>Away Competitor</span>
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-full bg-green-600 text-white w-7 h-7 text-sm"
+                title="Add competitor"
+                onClick={() => setShowAddCompetitor("away")}
+              >
+                +
+              </button>
+            </span>
             <select className="form-field" value={form.AwayCompetitorId || ""} onChange={(e) => update("AwayCompetitorId", Number(e.target.value))} required>
               <option value="" disabled>Select away competitor</option>
               {competitors.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
@@ -185,8 +201,112 @@ export default function AddPicksPage() {
           <button type="submit" className="btn-primary" disabled={submitting}>{submitting ? "Saving…" : "Create"}</button>
         </div>
       </form>
+      <AddCompetitorModal
+        open={Boolean(showAddCompetitor)}
+        sportId={form.SportId}
+        onClose={() => setShowAddCompetitor(null)}
+        onCreated={async (created) => {
+          // Refresh list then select created as AwayCompetitorId
+          const sportId = form.SportId || null;
+          const { data } = await client.query<{ competitors: Competitor[] }>({ query: LIST_COMPETITORS, variables: { sportId }, fetchPolicy: "no-cache" });
+          setCompetitors(data?.competitors || []);
+          update("AwayCompetitorId", created.id);
+          setShowAddCompetitor(null);
+        }}
+        client={client}
+      />
     </div>
   );
 }
 
+
+type AddCompetitorModalProps = {
+  open: boolean;
+  sportId: number;
+  onClose: () => void;
+  onCreated: (competitor: { id: number; name: string; SportId: number; logo?: string | null }) => void;
+  client: ApolloClient;
+};
+
+function AddCompetitorModal({ open, sportId, onClose, onCreated, client }: AddCompetitorModalProps) {
+  const [name, setName] = useState("");
+  const [file, setFile] = useState<File | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  if (!open) return null;
+
+  async function getPresignedUrl(params: { fileName: string; fileType: string; folder?: string }) {
+    const res = await fetch("/api/s3/presign", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(params),
+    });
+    if (!res.ok) throw new Error("Failed to get presigned URL");
+    return res.json() as Promise<{ url: string; key: string }>;
+  }
+
+  async function uploadToS3(url: string, fileToUpload: File) {
+    const res = await fetch(url, { method: "PUT", body: fileToUpload, headers: { "Content-Type": fileToUpload.type } });
+    if (!res.ok) throw new Error("Upload failed");
+  }
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    setError(null);
+    if (!name.trim()) { setError("Name is required"); return; }
+    try {
+      setSubmitting(true);
+      let logoKey: string | undefined = undefined;
+      if (file) {
+        const { url, key } = await getPresignedUrl({ fileName: file.name, fileType: file.type, folder: "competitors/" });
+        await uploadToS3(url, file);
+        // Store only the key; UI composes URL via NEXT_PUBLIC_ESB_COMPETITOR_ASSETS
+        logoKey = key;
+      }
+      const { data } = await client.mutate<{ createCompetitor: { id: number; name: string; SportId: number; logo?: string | null } }>({
+        mutation: CREATE_COMPETITOR,
+        variables: { SportId: Number(sportId), name: name.trim(), logo: logoKey },
+      });
+      const created = data?.createCompetitor;
+      if (created) {
+        onCreated(created);
+        setName("");
+        setFile(null);
+      }
+    } catch (err) {
+      console.error(err);
+      setError(err instanceof Error ? err.message : "Failed to create competitor");
+    } finally {
+      setSubmitting(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+      <div className="card p-6 w-full max-w-md">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="text-xl font-semibold">Add Competitor</h3>
+          <button className="btn-secondary" onClick={onClose} disabled={submitting}>Close</button>
+        </div>
+        <form className="grid gap-4" onSubmit={handleSubmit}>
+          <label className="grid gap-1">
+            <span>Name</span>
+            <input className="form-field" value={name} onChange={(e) => setName(e.target.value)} required />
+          </label>
+          <label className="grid gap-1">
+            <span>Logo (optional)</span>
+            <input type="file" accept="image/*" onChange={(e) => setFile(e.target.files?.[0] ?? null)} />
+            <span className="text-xs text-gray-500">JPEG/PNG/SVG up to 5MB</span>
+          </label>
+          {error ? <div className="text-error text-sm">{error}</div> : null}
+          <div className="flex gap-2 justify-end">
+            <button type="button" className="btn-secondary" onClick={onClose} disabled={submitting}>Cancel</button>
+            <button type="submit" className="btn-primary" disabled={submitting}>{submitting ? "Saving…" : "Create"}</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  );
+}
 
