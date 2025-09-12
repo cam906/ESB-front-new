@@ -1,6 +1,7 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import { ApolloClient, gql, HttpLink, InMemoryCache } from "@apollo/client";
+import { useEffect, useState } from "react";
+import { gql } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 
 type Sport = { id: number; title: string };
 type Competitor = { id: number; name: string; SportId: number };
@@ -35,9 +36,7 @@ const UPDATE_PICK = gql`
   }
 `;
 
-function createClient() {
-  return new ApolloClient({ link: new HttpLink({ uri: "/api/graphql", credentials: "same-origin" }), cache: new InMemoryCache() });
-}
+// Centralized Apollo client via provider
 
 const STATUS_OPTIONS = [
   { value: 1, label: "NEW" },
@@ -48,7 +47,7 @@ const STATUS_OPTIONS = [
 ];
 
 export default function EditPicksPage() {
-  const client = useMemo(() => createClient(), []);
+  const client = useApolloClient();
 
   const [sports, setSports] = useState<Sport[]>([]);
   const [competitors, setCompetitors] = useState<Competitor[]>([]);

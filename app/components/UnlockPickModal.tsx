@@ -1,6 +1,7 @@
 "use client";
-import React, { useMemo, useState } from "react";
-import { ApolloClient, HttpLink, InMemoryCache, gql } from "@apollo/client";
+import React, { useState } from "react";
+import { gql } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 
 type Props = {
   open: boolean;
@@ -13,15 +14,8 @@ type Props = {
 
 const UNLOCK_PICK = gql`mutation Unlock($userId: ID!, $pickId: ID!) { unlockPick(userId: $userId, pickId: $pickId) { id } }`;
 
-function createClient() {
-  return new ApolloClient({
-    link: new HttpLink({ uri: "/api/graphql", credentials: "same-origin" }),
-    cache: new InMemoryCache(),
-  });
-}
-
 export default function UnlockPickModal({ open, credits, userId, pickId, onClose, onUnlocked }: Props) {
-  const client = useMemo(() => createClient(), []);
+  const client = useApolloClient();
   const [submitting, setSubmitting] = useState(false);
 
   if (!open) return null;

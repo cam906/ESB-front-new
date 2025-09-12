@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import { ApolloClient, InMemoryCache, gql, HttpLink } from "@apollo/client";
-import { createApolloClient } from "@/app/lib/authFetch";
+import { useEffect, useState } from "react";
+import { gql } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 import { useMe } from "@/app/lib/useMe";
 
 type Purchase = {
@@ -42,13 +42,12 @@ const LIST_PURCHASES = gql`
   }
 `;
 
-function createClient() { return createApolloClient(); }
+// Centralized Apollo client via provider
 
 export default function PurchaseHistoryPage() {
   const { user } = useMe();
   const isAdmin = !!user?.roles && (user.roles.includes("ADMIN") || user.roles.includes("SUPERADMIN"));
-
-  const client = useMemo(() => createClient(), []);
+  const client = useApolloClient();
 
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [page, setPage] = useState<number>(1);

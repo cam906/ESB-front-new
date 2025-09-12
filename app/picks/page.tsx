@@ -1,7 +1,7 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
-import { ApolloClient, InMemoryCache, gql, HttpLink } from "@apollo/client";
-import { createApolloClient } from "../lib/authFetch";
+import { useEffect, useState } from "react";
+import { gql } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
 import ScoreCardItem from "../components/ScoreCardItem";
 import UnlockPickModal from "../components/UnlockPickModal";
@@ -31,14 +31,11 @@ const LIST_PICKS = gql`
 const LIST_UNLOCKED = gql`query Unlocked($userId: ID!) { unlockedPicks(userId: $userId) { PickId } }`;
 const GET_COMPETITORS = gql`query Competitors($sportId: Int) { competitors(sportId: $sportId) { id name logo } }`;
 
-function createClient() { return createApolloClient(); }
-
 export default function PicksPage() {
   const router = useRouter();
   const { user, isAuthenticated } = useMe();
   const isAdmin = !!user?.roles && (user.roles.includes("ADMIN") || user.roles.includes("SUPERADMIN"));
-
-  const client = useMemo(() => createClient(), []);
+  const client = useApolloClient();
 
   const [sports, setSports] = useState<Sport[]>([]);
   const [competitorsById, setCompetitorsById] = useState<Record<number, { id: number; name: string; logo?: string | null }>>({});

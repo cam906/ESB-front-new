@@ -6,6 +6,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import AuthCookieSync from "./components/AuthCookieSync";
 import AuthenticatorProvider from "./amplify-client-config";
+import ApolloAppProvider from "./components/ApolloAppProvider";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -40,10 +41,12 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} ${poppins.variable} antialiased`}
       >
         <AuthenticatorProvider>
-          <AuthCookieSync />
-          <Header />
-          {children}
-          <Footer />
+          <ApolloAppProvider>
+            <AuthCookieSync />
+            <Header />
+            {children}
+            <Footer />
+          </ApolloAppProvider>
         </AuthenticatorProvider>
       </body>
     </html>

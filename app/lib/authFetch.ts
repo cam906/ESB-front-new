@@ -1,6 +1,5 @@
 "use client";
 import { fetchAuthSession } from "aws-amplify/auth";
-import { ApolloClient, InMemoryCache, HttpLink } from "@apollo/client";
 
 export async function authFetch(input: RequestInfo | URL, init?: RequestInit) {
   try {
@@ -14,11 +13,5 @@ export async function authFetch(input: RequestInfo | URL, init?: RequestInit) {
   }
 }
 
-export function createApolloClient() {
-  return new ApolloClient({
-    link: new HttpLink({ uri: "/api/graphql", fetch: authFetch as unknown as typeof fetch }),
-    cache: new InMemoryCache(),
-  });
-}
 
 

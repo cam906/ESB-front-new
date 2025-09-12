@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
-import { ApolloClient, gql, HttpLink, InMemoryCache } from "@apollo/client";
+import { gql, type ApolloClient } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
 
 type Sport = { id: number; title: string };
@@ -25,9 +26,7 @@ const CREATE_PICK = gql`
   }
 `;
 
-function createClient() {
-  return new ApolloClient({ link: new HttpLink({ uri: "/api/graphql", credentials: "same-origin" }), cache: new InMemoryCache() });
-}
+// Centralized Apollo client via provider
 
 const STATUS_OPTIONS = [
   { value: 1, label: "NEW" },
@@ -38,7 +37,7 @@ const STATUS_OPTIONS = [
 ];
 
 export default function AddPicksPage() {
-  const client = useMemo(() => createClient(), []);
+  const client = useApolloClient();
   const router = useRouter();
 
   const [sports, setSports] = useState<Sport[]>([]);
