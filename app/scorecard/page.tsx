@@ -41,6 +41,7 @@ export default function ScorecardPage() {
   const [sports, setSports] = useState<Sport[]>([]);
   const [competitorsById, setCompetitorsById] = useState<Record<number, { id: number; name: string; logo?: string | null }>>({});
   const [picks, setPicks] = useState<Pick[]>([]);
+  const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(0);
   // totalPages determines next/prev visibility
   const [totalPages, setTotalPages] = useState(1);
@@ -49,6 +50,7 @@ export default function ScorecardPage() {
 
   useEffect(() => {
     async function loadBase() {
+      setLoading(true);
       const [{ data: sRes }, { data: cRes }] = await Promise.all([
         client.query<{ sports: Sport[] }>({ query: LIST_SPORTS, fetchPolicy: "no-cache" }),
         client.query<{ competitors: { id: number; name: string; logo?: string | null }[] }>({ query: GET_COMPETITORS, variables: { sportId: null }, fetchPolicy: "no-cache" }),
@@ -59,12 +61,14 @@ export default function ScorecardPage() {
       const map: Record<number, { id: number; name: string; logo?: string | null }> = {};
       for (const comp of (c?.competitors || [])) map[comp.id] = comp;
       setCompetitorsById(map);
+      setLoading(false);
     }
     loadBase();
   }, [client]);
 
   useEffect(() => {
     async function loadPicks() {
+      setLoading(true);
       const statuses = [10, 20, 30, 100];
       const pageSize = 30;
       const [{ data }, { data: countData }] = await Promise.all([
@@ -90,6 +94,7 @@ export default function ScorecardPage() {
       setPicks(items.slice(0, pageSize));
       const total = countData?.picksCount ?? 0;
       setTotalPages(Math.max(1, Math.ceil(total / pageSize)));
+      setLoading(false);
     }
     loadPicks();
   }, [client, page, selectedSportId, sort]);
@@ -181,26 +186,51 @@ export default function ScorecardPage() {
           </div>
 
           <div className="grid gap-4">
-            {completedPicks.map((p) => (
-              <div key={p.id} className="flex flex-col gap-2">
-                <ScoreCardItem
-                  pick={{
-                    id: p.id,
-                    title: p.title,
-                    status: p.status,
-                    matchTime: p.matchTime,
-                    summary: p.summary,
-                    HomeCompetitor: competitorsById[p.HomeCompetitorId],
-                    AwayCompetitor: competitorsById[p.AwayCompetitorId],
-                  }}
-                  isUnlocked={isAuthenticated}
-                  isAdmin={isAdmin}
-                  hideButtons={true}
-                  onShowUnlocked={() => handleShowUnlocked(p.id)}
-                  onUnlock={() => import('aws-amplify/auth').then(({ signInWithRedirect }) => signInWithRedirect())}
-                />
-              </div>
-            ))}
+            {loading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="card p-4 animate-pulse">
+                  <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2 mb-4">
+                    <div className="h-4 w-20 bg-gray-300 dark:bg-gray-700 rounded" />
+                    <div className="h-5 bg-gray-300 dark:bg-gray-700 rounded" />
+                    <div className="h-4 w-24 bg-gray-300 dark:bg-gray-700 rounded" />
+                  </div>
+                  <div className="grid grid-cols-3 items-center gap-4">
+                    <div className="justify-self-center flex flex-col items-center gap-2">
+                      <div className="h-20 w-20 bg-gray-300 dark:bg-gray-700" />
+                      <div className="h-4 w-28 bg-gray-300 dark:bg-gray-700 rounded" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-3 w-40 bg-gray-300 dark:bg-gray-700 rounded" />
+                      <div className="h-3 w-56 bg-gray-300 dark:bg-gray-700 rounded" />
+                    </div>
+                    <div className="justify-self-center flex flex-col items-center gap-2">
+                      <div className="h-20 w-20 bg-gray-300 dark:bg-gray-700" />
+                      <div className="h-4 w-28 bg-gray-300 dark:bg-gray-700 rounded" />
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              completedPicks.map((p) => (
+                <div key={p.id} className="flex flex-col gap-2">
+                  <ScoreCardItem
+                    pick={{
+                      id: p.id,
+                      title: p.title,
+                      status: p.status,
+                      matchTime: p.matchTime,
+                      summary: p.summary,
+                      HomeCompetitor: competitorsById[p.HomeCompetitorId],
+                      AwayCompetitor: competitorsById[p.AwayCompetitorId],
+                    }}
+                    isUnlocked={isAuthenticated}
+                    isAdmin={isAdmin}
+                    onShowUnlocked={() => handleShowUnlocked(p.id)}
+                    onUnlock={() => import('aws-amplify/auth').then(({ signInWithRedirect }) => signInWithRedirect())}
+                  />
+                </div>
+              ))
+            )}
           </div>
 
           <div className="grid grid-cols-3 items-center mt-6">

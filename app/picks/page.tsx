@@ -43,6 +43,7 @@ export default function PicksPage() {
   const [sports, setSports] = useState<Sport[]>([]);
   const [competitorsById, setCompetitorsById] = useState<Record<number, { id: number; name: string; logo?: string | null }>>({});
   const [picks, setPicks] = useState<Pick[]>([]);
+  const [loading, setLoading] = useState(true);
   const [unlockedIds, setUnlockedIds] = useState<Set<number>>(new Set());
   const [userCredits, setUserCredits] = useState<number>(0);
   const [page, setPage] = useState(0);
@@ -54,6 +55,7 @@ export default function PicksPage() {
 
   useEffect(() => {
     async function loadBase() {
+      setLoading(true);
       const [{ data: sRes }, { data: cRes }] = await Promise.all([
         client.query<{ sports: Sport[] }>({ query: LIST_SPORTS, fetchPolicy: "no-cache" }),
         client.query<{ competitors: { id: number; name: string; logo?: string | null }[] }>({ query: GET_COMPETITORS, variables: { sportId: null }, fetchPolicy: "no-cache" }),
@@ -64,12 +66,14 @@ export default function PicksPage() {
       const map: Record<number, { id: number; name: string; logo?: string | null }> = {};
       for (const comp of (c?.competitors || [])) map[comp.id] = comp;
       setCompetitorsById(map);
+      setLoading(false);
     }
     loadBase();
   }, [client]);
 
   useEffect(() => {
     async function loadPicks() {
+      setLoading(true);
       const status = 1;
       const pageSize = 20;
       const [{ data }, { data: countData }] = await Promise.all([
@@ -99,6 +103,7 @@ export default function PicksPage() {
         // simple toast substitute
         console.info("No data");
       }
+      setLoading(false);
     }
     loadPicks();
   }, [client, page, selectedSportId, sort]);
@@ -197,25 +202,51 @@ export default function PicksPage() {
           </div>
 
           <div className="grid gap-4">
-            {picks.map((p) => (
-              <ScoreCardItem
-                key={p.id}
-                pick={{
-                  id: p.id,
-                  title: p.title,
-                  status: p.status,
-                  matchTime: p.matchTime,
-                  summary: p.summary,
-                  cntUnlocked: p.cntUnlocked,
-                  HomeCompetitor: competitorsById[p.HomeCompetitorId],
-                  AwayCompetitor: competitorsById[p.AwayCompetitorId],
-                }}
-                isUnlocked={isUnlocked(p)}
-                isAdmin={isAdmin}
-                onShowUnlocked={handleShowUnlocked}
-                onUnlock={handleUnlock}
-              />
-            ))}
+            {loading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <div key={i} className="card p-4 animate-pulse">
+                  <div className="grid grid-cols-[auto_1fr_auto] items-center gap-2 mb-4">
+                    <div className="h-4 w-20 bg-gray-300 dark:bg-gray-700 rounded" />
+                    <div className="h-5 bg-gray-300 dark:bg-gray-700 rounded" />
+                    <div className="h-4 w-24 bg-gray-300 dark:bg-gray-700 rounded" />
+                  </div>
+                  <div className="grid grid-cols-3 items-center gap-4">
+                    <div className="justify-self-center flex flex-col items-center gap-2">
+                      <div className="h-20 w-20 bg-gray-300 dark:bg-gray-700" />
+                      <div className="h-4 w-28 bg-gray-300 dark:bg-gray-700 rounded" />
+                    </div>
+                    <div className="space-y-2">
+                      <div className="h-3 w-40 bg-gray-300 dark:bg-gray-700 rounded" />
+                      <div className="h-3 w-56 bg-gray-300 dark:bg-gray-700 rounded" />
+                    </div>
+                    <div className="justify-self-center flex flex-col items-center gap-2">
+                      <div className="h-20 w-20 bg-gray-300 dark:bg-gray-700" />
+                      <div className="h-4 w-28 bg-gray-300 dark:bg-gray-700 rounded" />
+                    </div>
+                  </div>
+                </div>
+              ))
+            ) : (
+              picks.map((p) => (
+                <ScoreCardItem
+                  key={p.id}
+                  pick={{
+                    id: p.id,
+                    title: p.title,
+                    status: p.status,
+                    matchTime: p.matchTime,
+                    summary: p.summary,
+                    cntUnlocked: p.cntUnlocked,
+                    HomeCompetitor: competitorsById[p.HomeCompetitorId],
+                    AwayCompetitor: competitorsById[p.AwayCompetitorId],
+                  }}
+                  isUnlocked={isUnlocked(p)}
+                  isAdmin={isAdmin}
+                  onShowUnlocked={handleShowUnlocked}
+                  onUnlock={handleUnlock}
+                />
+              ))
+            )}
           </div>
 
           <div className="grid grid-cols-3 items-center mt-6">
