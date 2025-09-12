@@ -67,6 +67,7 @@ export default function ScoreCardItem({ pick, isUnlocked, isAdmin, onShowUnlocke
 
   return (
     <div
+      id={`pick-card-${pick.id}`}
       className={`card p-4 flex flex-col gap-3 ${clickable ? 'cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-md' : ''}`}
       onClick={handleOpen}
       role={clickable ? 'button' : undefined}
@@ -83,24 +84,42 @@ export default function ScoreCardItem({ pick, isUnlocked, isAdmin, onShowUnlocke
           <TeamImage name={pick.HomeCompetitor?.name || "Home"} logo={pick.HomeCompetitor?.logo} />
         </div>
         <div className="text-center text-sm">
-          {isNew ? (
-            isAdmin ? (
-              <div className="flex items-center justify-center gap-2">
-                <span className="text-xs">Unlocked Count:</span>
-                <span className="font-medium">{pick.cntUnlocked ?? 0}</span>
+          {isNew && !unlocked ? (
+            <div className="relative rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-4 overflow-hidden">
+              <div className="text-left text-xs text-slate-500 dark:text-slate-400 leading-5 blur-[2px] select-none">
+                {`Key injuries could alter rotations, but coaching adjustments and bench depth are expected to stabilize performance.`}
               </div>
-            ) : (
-              <div className="flex items-center justify-center gap-2">
-                <span className="text-xs">{unlocked ? "Unlocked" : "Locked"}</span>
-                <span>{unlocked ? "🔓" : "🔒"}</span>
+              <div className="absolute inset-0 flex items-center justify-center">
+                <button
+                  className="px-8 py-3 rounded-full bg-gradient-to-r from-yellow-400 via-amber-400 to-lime-300 text-black text-lg font-extrabold uppercase tracking-wide shadow-lg hover:shadow-2xl hover:scale-[1.04] transition cursor-pointer ring-2 ring-yellow-300"
+                  aria-label="Unlock winner"
+                  onClick={(e) => { e.stopPropagation(); onUnlock?.(pick.id); }}
+                >
+                  Unlock Winner 🏆
+                </button>
               </div>
-            )
+            </div>
           ) : (
-            <div className={`font-semibold ${statusColor(pick.status)}`}>{statusName(pick.status)}</div>
+            <>
+              {isNew ? (
+                isAdmin ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <span className="text-xs">Unlocked Count:</span>
+                    <span className="font-medium">{pick.cntUnlocked ?? 0}</span>
+                  </div>
+                ) : null
+              ) : (
+                <div className={`font-semibold ${statusColor(pick.status)}`}>{statusName(pick.status)}</div>
+              )}
+              <div className="mt-2">
+                {(unlocked || !isNew) ? (
+                  <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-4 text-center text-sm">
+                    {pick.summary}
+                  </div>
+                ) : null}
+              </div>
+            </>
           )}
-          <div className="mt-2 text-sm">
-            {(unlocked || !isNew) ? pick.summary : <span className="text-gray-400">Unlock to view summary</span>}
-          </div>
         </div>
         <div className="justify-self-center">
           <TeamImage name={pick.AwayCompetitor?.name || "Away"} logo={pick.AwayCompetitor?.logo} />

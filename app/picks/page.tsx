@@ -45,6 +45,7 @@ export default function PicksPage() {
   const [picks, setPicks] = useState<Pick[]>([]);
   const [loading, setLoading] = useState(true);
   const [unlockedIds, setUnlockedIds] = useState<Set<number>>(new Set());
+  const [locallyUnlockedIds, setLocallyUnlockedIds] = useState<Set<number>>(new Set());
   const [userCredits, setUserCredits] = useState<number>(0);
   const [page, setPage] = useState(0);
   // totalPages determines next/prev visibility
@@ -120,7 +121,7 @@ export default function PicksPage() {
   }, [client, isAuthenticated, user?.id, user?.credits]);
 
   function isUnlocked(p: Pick) {
-    return isAuthenticated && (isAdmin || unlockedIds.has(+p.id));
+    return isAuthenticated && (isAdmin || unlockedIds.has(+p.id) || locallyUnlockedIds.has(+p.id));
   }
 
   function handleShowUnlocked(pickId: number) {
@@ -138,7 +139,76 @@ export default function PicksPage() {
   function onUnlocked(pickId: number) {
     console.info("Pick Unlocked!");
     setUnlockedIds((prev) => new Set(prev).add(pickId));
-    setTimeout(() => router.push(`/pick/${pickId}`), 300);
+    setLocallyUnlockedIds((prev) => new Set(prev).add(pickId));
+    try {
+      triggerConfettiFromCard(pickId);
+    } catch (e) {
+      console.warn('Confetti failed', e);
+    }
+  }
+
+  function ensureConfettiStyles() {
+    if (typeof document === 'undefined') return;
+    if (document.getElementById('confetti-styles')) return;
+    const style = document.createElement('style');
+    style.id = 'confetti-styles';
+    style.textContent = `
+      @keyframes confetti-fall {
+        0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+        100% { transform: translateY(120px) rotate(720deg); opacity: 0; }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function triggerConfettiFromCard(pickId: number) {
+    if (typeof document === 'undefined' || typeof window === 'undefined') return;
+    ensureConfettiStyles();
+    const el = document.getElementById(`pick-card-${pickId}`);
+    if (!el) return;
+    const rect = el.getBoundingClientRect();
+    const startY = Math.max(0, rect.top - 8);
+
+    const container = document.createElement('div');
+    container.style.position = 'fixed';
+    container.style.left = '0';
+    container.style.top = '0';
+    container.style.width = '100%';
+    container.style.height = '0';
+    container.style.pointerEvents = 'none';
+    container.style.zIndex = '9999';
+
+    const colors = ['#22c55e', '#fde047', '#3b82f6', '#ef4444', '#a855f7'];
+    const count = 60;
+    for (let i = 0; i < count; i++) {
+      const piece = document.createElement('div');
+      const size = 6 + Math.random() * 8;
+      const startX = rect.left + 8 + Math.random() * Math.max(0, rect.width - 16);
+      piece.style.position = 'fixed';
+      piece.style.left = `${startX}px`;
+      piece.style.top = `${startY}px`;
+      piece.style.width = `${size}px`;
+      piece.style.height = `${size * (0.5 + Math.random() * 1.2)}px`;
+      piece.style.background = colors[Math.floor(Math.random() * colors.length)];
+      piece.style.transform = 'translate(0px, 0px) rotate(0deg)';
+      piece.style.opacity = '1';
+      piece.style.borderRadius = Math.random() > 0.5 ? '2px' : '50%';
+      piece.style.boxShadow = '0 0 0 1px rgba(0,0,0,0.05)';
+      // trigger animation
+      requestAnimationFrame(() => {
+        const driftX = (Math.random() - 0.5) * 160;
+        const fallY = rect.height + 160 + Math.random() * 100;
+        piece.style.transition = 'transform 1100ms cubic-bezier(0.2,0.6,0.2,1), opacity 1100ms linear';
+        piece.style.transform = `translate(${driftX}px, ${fallY}px) rotate(${Math.random() * 1080}deg)`;
+        piece.style.opacity = '0';
+      });
+      container.appendChild(piece);
+    }
+
+    document.body.appendChild(container);
+    window.setTimeout(() => {
+      container.remove();
+    }, 1200);
   }
 
   return (
