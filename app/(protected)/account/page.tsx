@@ -15,17 +15,6 @@ export default function AccountPage() {
   return (
     <div className="container mx-auto gutters section-spacing">
       <div className="flex flex-col md:flex-row gap-6">
-        <aside className="hidden md:block md:w-64">
-          <div className='Bet365Component iframe-container card p-0 overflow-hidden'>
-            <iframe
-              title='Bet365'
-              src='https://imstore.bet365affiliates.com/365_455806-449-32-6-149-1-88420.aspx'
-              frameBorder='0'
-              scrolling='no'
-              className="w-full h-80"
-            ></iframe>
-          </div>
-        </aside>
         <main className="flex-1">
           <h1 className="text-3xl font-bold mb-4">Account</h1>
 

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
 import { useAuthenticator } from "@aws-amplify/ui-react";
 import { signInWithRedirect, signOut } from "aws-amplify/auth";
 import { useMe } from "../lib/useMe";
@@ -12,9 +13,12 @@ export default function Header() {
   const [isDark, setIsDark] = useState(false);
   const [userOpen, setUserOpen] = useState(false);
   const panelRef = useRef<HTMLDivElement | null>(null);
+  const userMenuRef = useRef<HTMLDivElement | null>(null);
   const { user, authStatus } = useAuthenticator((c) => [c.user, c.authStatus]);
   const isAuthenticated = authStatus === 'authenticated';
   const { user: meUser } = useMe();
+  const pathname = usePathname();
+  const [hash, setHash] = useState<string>("");
   const isAdmin = (() => {
     const r = meUser?.roles;
     if (!r) return false;
@@ -57,6 +61,45 @@ export default function Header() {
     }
   }, [isMobileOpen]);
 
+  useEffect(() => {
+    function handleDocumentMouseDown(e: MouseEvent) {
+      if (!userOpen) return;
+      const container = userMenuRef.current;
+      if (container && e.target instanceof Node && !container.contains(e.target)) {
+        setUserOpen(false);
+      }
+    }
+
+    function handleKeyDown(e: KeyboardEvent) {
+      if (e.key === "Escape") {
+        setUserOpen(false);
+        setIsMobileOpen(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleDocumentMouseDown);
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("mousedown", handleDocumentMouseDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [userOpen]);
+
+  useEffect(() => {
+    const updateHash = () => setHash(window.location.hash || "");
+    updateHash();
+    window.addEventListener("hashchange", updateHash);
+    return () => window.removeEventListener("hashchange", updateHash);
+  }, []);
+
+  const isActivePath = (path: string) => {
+    if (!pathname) return false;
+    if (path === "/") return pathname === "/" && (!hash || hash === "");
+    return pathname.startsWith(path);
+  };
+
+  const isActivePackages = () => pathname === "/" && hash === "#packages";
+
   function toggleTheme() {
     const next = !isDark;
     setIsDark(next);
@@ -92,21 +135,21 @@ export default function Header() {
           </Link>
 
           <nav className="hidden md:flex items-center space-x-6">
-            <Link href="/" className="dark:text-gray-300 hover:text-primary">Home</Link>
+            <Link href="/" className={`${isActivePath('/') ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`}>Home</Link>
 
             {isAuthenticated && (
               <>
-                <Link href="/picks" className="dark:text-gray-300 hover:text-primary">Picks</Link>
-                <Link href="/scorecard" className="dark:text-gray-300 hover:text-primary">Scorecard</Link>
-                <Link href="/#packages" className="dark:text-gray-300 hover:text-primary">Packages</Link>
+                <Link href="/picks" className={`${isActivePath('/picks') ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`}>Picks</Link>
+                <Link href="/scorecard" className={`${isActivePath('/scorecard') ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`}>Scorecard</Link>
+                <Link href="/#packages" className={`${isActivePackages() ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`}>Packages</Link>
               </>
             )}
 
             {isAdmin && (
               <>
-                <Link href="/add-picks" className="dark:text-gray-300 hover:text-primary">Add Picks</Link>
-                <Link href="/edit-picks" className="dark:text-gray-300 hover:text-primary">Edit Picks</Link>
-                <Link href="/admin" className="py-2 px-3 hover:text-primary">Admin</Link>
+                <Link href="/add-picks" className={`${isActivePath('/add-picks') ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`}>Add Picks</Link>
+                <Link href="/edit-picks" className={`${isActivePath('/edit-picks') ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`}>Edit Picks</Link>
+                <Link href="/admin" className={`${isActivePath('/admin') ? 'text-primary' : ''} py-2 px-3 hover:text-primary`}>Admin</Link>
               </>
             )}
 
@@ -118,8 +161,8 @@ export default function Header() {
             )}
 
             {isAuthenticated && (
-              <div className="relative">
-                <button onClick={() => setUserOpen((v) => !v)} className="dark:text-gray-300 hover:text-primary">{(user as unknown as { signInDetails?: { loginId?: string } })?.signInDetails?.loginId || 'Account'}</button>
+              <div className="relative" ref={userMenuRef}>
+                <button onClick={() => setUserOpen((v) => !v)} className="dark:text-gray-300 hover:text-primary cursor-pointer">{(user as unknown as { signInDetails?: { loginId?: string } })?.signInDetails?.loginId || 'Account'}</button>
                 {userOpen && (
                   <div className="absolute mt-2 right-0 w-56 card p-2 z-50">
                     <div className="flex flex-col">
@@ -160,14 +203,14 @@ export default function Header() {
           <button aria-label="Close mobile menu" onClick={() => setIsMobileOpen(false)} className="self-end mb-8 focus:outline-none">
             <svg className="w-7 h-7 text-gray-700 dark:text-gray-200" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
           </button>
-          <Link href="/" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Home</Link>
-          <Link href="/picks" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Picks</Link>
-          <Link href="/scorecard" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Scorecard</Link>
+          <Link href="/" className={`mb-4 ${isActivePath('/') ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`} onClick={() => setIsMobileOpen(false)}>Home</Link>
+          <Link href="/picks" className={`mb-4 ${isActivePath('/picks') ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`} onClick={() => setIsMobileOpen(false)}>Picks</Link>
+          <Link href="/scorecard" className={`mb-4 ${isActivePath('/scorecard') ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`} onClick={() => setIsMobileOpen(false)}>Scorecard</Link>
           {isAuthenticated && (
-            <Link href="/#packages" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Packages</Link>
+            <Link href="/#packages" className={`mb-4 ${isActivePackages() ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`} onClick={() => setIsMobileOpen(false)}>Packages</Link>
           )}
           {isAdmin && (
-            <Link href="/admin" className="mb-4 dark:text-gray-300 hover:text-primary" onClick={() => setIsMobileOpen(false)}>Admin</Link>
+            <Link href="/admin" className={`mb-4 ${isActivePath('/admin') ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`} onClick={() => setIsMobileOpen(false)}>Admin</Link>
           )}
           {!isAuthenticated && (
             <>

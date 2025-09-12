@@ -25,13 +25,12 @@ export async function POST(req: NextRequest) {
   try {
     const json = await req.json();
     const { fileName, fileType, folder } = Body.parse(json);
-
+    const key = sanitize(fileName);
     // Generate a safe object key. Prefix with a namespace/folder and date buckets.
-    const key = `${folder ?? "uploads/"}${new Date().toISOString().slice(0, 10)}/${uuid()}-${sanitize(fileName)}`;
 
     const cmd = new PutObjectCommand({
-      Bucket: process.env.S3_BUCKET!,
-      Key: key,
+      Bucket: process.env.NEXT_PUBLIC_ESB_COMPETITOR_ASSETS!,
+      Key: `${folder ?? "competitors/"}${key}`,
       ContentType: fileType,            // enforce on the upload
       // Recommended security (pick one):
       // ServerSideEncryption: "AES256",

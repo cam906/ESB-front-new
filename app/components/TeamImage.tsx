@@ -8,8 +8,9 @@ type TeamImageProps = {
 };
 
 export default function TeamImage({ name, logo, size = 40 }: TeamImageProps) {
-  const base = process.env.NEXT_PUBLIC_ESB_COMPETITOR_ASSETS || "";
-  const src = logo ? `${base}${logo}` : undefined;
+  const bucket = process.env.NEXT_PUBLIC_ESB_COMPETITOR_ASSETS || "";
+  const base = `https://s3-ap-southeast-2.amazonaws.com/${bucket}`;
+  const src = logo ? `${base}/competitors/${logo}` : undefined;
   return (
     <div className="flex items-center gap-2">
       {src ? (
