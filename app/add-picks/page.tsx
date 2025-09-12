@@ -55,7 +55,7 @@ export default function AddPicksPage() {
     isFeatured: false,
   });
   const [submitting, setSubmitting] = useState(false);
-  const [showAddCompetitor, setShowAddCompetitor] = useState<"away" | null>(null);
+  const [showAddCompetitor, setShowAddCompetitor] = useState<"home" | "away" | null>(null);
 
   useEffect(() => {
     async function loadSports() {
@@ -125,19 +125,31 @@ export default function AddPicksPage() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <label className="grid gap-1">
-            <span>Home Competitor</span>
+            <span className="inline-flex items-center gap-2">
+              <span>Home Competitor</span>
+              <button
+                type="button"
+                className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-green-600 to-emerald-500 text-white w-8 h-8 text-base shadow-md ring-1 ring-white/20 hover:shadow-lg hover:scale-105 transition"
+                title="Add competitor"
+                aria-label="Add home competitor"
+                onClick={() => setShowAddCompetitor("home")}
+              >
+                +
+              </button>
+            </span>
             <select className="form-field" value={form.HomeCompetitorId || ""} onChange={(e) => update("HomeCompetitorId", Number(e.target.value))} required>
               <option value="" disabled>Select home competitor</option>
               {competitors.map((c) => <option key={c.id} value={c.id}>{c.name}</option>)}
             </select>
           </label>
           <label className="grid gap-1">
-            <span className="flex items-center justify-between">
+            <span className="inline-flex items-center gap-2">
               <span>Away Competitor</span>
               <button
                 type="button"
-                className="inline-flex items-center justify-center rounded-full bg-green-600 text-white w-7 h-7 text-sm"
+                className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-green-600 to-emerald-500 text-white w-8 h-8 text-base shadow-md ring-1 ring-white/20 hover:shadow-lg hover:scale-105 transition"
                 title="Add competitor"
+                aria-label="Add away competitor"
                 onClick={() => setShowAddCompetitor("away")}
               >
                 +
@@ -205,11 +217,12 @@ export default function AddPicksPage() {
         sportId={form.SportId}
         onClose={() => setShowAddCompetitor(null)}
         onCreated={async (created) => {
-          // Refresh list then select created as AwayCompetitorId
+          // Refresh list then select created as Home/Away depending on which button opened the modal
+          const target = showAddCompetitor;
           const sportId = form.SportId || null;
           const { data } = await client.query<{ competitors: Competitor[] }>({ query: LIST_COMPETITORS, variables: { sportId }, fetchPolicy: "no-cache" });
           setCompetitors(data?.competitors || []);
-          update("AwayCompetitorId", created.id);
+          if (target === "home") update("HomeCompetitorId", created.id); else update("AwayCompetitorId", created.id);
           setShowAddCompetitor(null);
         }}
         client={client}
@@ -286,7 +299,14 @@ function AddCompetitorModal({ open, sportId, onClose, onCreated, client }: AddCo
       <div className="card p-6 w-full max-w-md">
         <div className="flex items-center justify-between mb-4">
           <h3 className="text-xl font-semibold">Add Competitor</h3>
-          <button className="btn-secondary" onClick={onClose} disabled={submitting}>Close</button>
+          <button
+            className="inline-flex items-center justify-center rounded-full bg-slate-800 text-white w-10 h-10 text-2xl font-bold shadow-md hover:bg-slate-700 active:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-white/40"
+            aria-label="Close"
+            onClick={onClose}
+            disabled={submitting}
+          >
+            ×
+          </button>
         </div>
         <form className="grid gap-4" onSubmit={handleSubmit}>
           <label className="grid gap-1">

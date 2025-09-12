@@ -30,6 +30,9 @@ const LIST_PICKS = gql`
 `;
 const LIST_UNLOCKED = gql`query Unlocked($userId: ID!) { unlockedPicks(userId: $userId) { PickId } }`;
 const GET_COMPETITORS = gql`query Competitors($sportId: Int) { competitors(sportId: $sportId) { id name logo } }`;
+const PICKS_COUNT = gql`
+  query PicksCount($status: Int, $sportId: Int) { picksCount(status: $status, sportId: $sportId) }
+`;
 
 export default function PicksPage() {
   const router = useRouter();
@@ -43,8 +46,10 @@ export default function PicksPage() {
   const [unlockedIds, setUnlockedIds] = useState<Set<number>>(new Set());
   const [userCredits, setUserCredits] = useState<number>(0);
   const [page, setPage] = useState(0);
+  // totalPages determines next/prev visibility
+  const [totalPages, setTotalPages] = useState(1);
   const [selectedSportId, setSelectedSportId] = useState<number | undefined>(undefined);
-  const [tab, setTab] = useState<"ALL" | "LATEST">("ALL");
+  const [sort, setSort] = useState<"ALL" | "LATEST" | "TOP">("ALL");
   const [modal, setModal] = useState<{ open: boolean; pickId?: number }>({ open: false });
 
   useEffect(() => {
@@ -65,20 +70,38 @@ export default function PicksPage() {
 
   useEffect(() => {
     async function loadPicks() {
-      const status = 1; // new picks only for Latest
-      const { data } = await client.query<{ picks: Pick[] }>({
-        query: LIST_PICKS,
-        variables: { limit: 20, offset: page * 20, status, sportId: selectedSportId, sortBy: "matchTime", sortDir: "ASC" },
-        fetchPolicy: "no-cache",
-      });
-      setPicks((data?.picks || []));
+      const status = 1;
+      const pageSize = 20;
+      const [{ data }, { data: countData }] = await Promise.all([
+        client.query<{ picks: Pick[] }>({
+          query: LIST_PICKS,
+          variables: {
+            limit: pageSize + 1,
+            offset: page * pageSize,
+            status,
+            sportId: selectedSportId,
+            sortBy: sort === 'ALL' ? 'id' : (sort === 'TOP' ? 'cntUnlocked' : 'matchTime'),
+            sortDir: sort === 'ALL' ? 'ASC' : (sort === 'TOP' ? 'DESC' : 'ASC'),
+          },
+          fetchPolicy: "no-cache",
+        }),
+        client.query<{ picksCount: number }>({
+          query: PICKS_COUNT,
+          variables: { status, sportId: selectedSportId },
+          fetchPolicy: "no-cache",
+        }),
+      ]);
+      const items = (data?.picks || []);
+      setPicks(items.slice(0, pageSize));
+      const total = countData?.picksCount ?? 0;
+      setTotalPages(Math.max(1, Math.ceil(total / pageSize)));
       if (!(data?.picks || []).length) {
         // simple toast substitute
         console.info("No data");
       }
     }
     loadPicks();
-  }, [client, page, selectedSportId, tab]);
+  }, [client, page, selectedSportId, sort]);
 
   useEffect(() => {
     async function loadUserExtras() {
@@ -122,22 +145,55 @@ export default function PicksPage() {
             <p className="dark:text-gray-400">View our current picks</p>
           </div>
 
-          <div className="flex items-center justify-between mb-4">
-            <div className="hidden md:flex gap-2">
-              <button className={`tab ${tab === 'ALL' ? 'tab-active' : ''}`} onClick={() => setTab('ALL')}>All</button>
-              <button className={`tab ${tab === 'LATEST' ? 'tab-active' : ''}`} onClick={() => setTab('LATEST')}>Latest</button>
-            </div>
+          <div className="flex items-center justify-end mb-4">
             <select
               className="form-field"
-              value={selectedSportId ?? ''}
-              onChange={(e) => setSelectedSportId(e.target.value ? Number(e.target.value) : undefined)}
+              value={selectedSportId ? `SPORT_${selectedSportId}` : sort}
+              onChange={(e) => {
+                const val = e.target.value;
+                setPage(0);
+                if (val.startsWith('SPORT_')) {
+                  const id = Number(val.replace('SPORT_', ''));
+                  setSelectedSportId(Number.isFinite(id) ? id : undefined);
+                } else {
+                  // Switching back to a global sort clears sport filter
+                  setSelectedSportId(undefined);
+                  setSort(val as typeof sort);
+                }
+              }}
             >
-              <option value="">All</option>
-              <option value="__latest" disabled>Latest</option>
+              <option value="ALL">All</option>
+              <option value="LATEST">Latest</option>
+              <option value="TOP">Top Selling</option>
               {sports.map((s) => (
-                <option key={s.id} value={s.id}>{s.title}</option>
+                <option key={s.id} value={`SPORT_${s.id}`}>{s.title}</option>
               ))}
             </select>
+          </div>
+
+          {/* Top pagination (matching bottom) */}
+          <div className="grid grid-cols-3 items-center mb-3">
+            <div className="justify-self-start">
+              {page > 0 ? (
+                <button className="btn-secondary cursor-pointer" onClick={() => setPage((x) => Math.max(0, x - 1))}>Previous</button>
+              ) : null}
+            </div>
+            <div className="justify-self-center">
+              <select
+                className="form-field cursor-pointer"
+                value={page + 1}
+                onChange={(e) => setPage(Math.max(0, Math.min(Number(e.target.value) - 1, totalPages - 1)))}
+              >
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </div>
+            <div className="justify-self-end">
+              {page + 1 < totalPages ? (
+                <button className="btn-secondary cursor-pointer" onClick={() => setPage((x) => Math.min(totalPages - 1, x + 1))}>Next</button>
+              ) : null}
+            </div>
           </div>
 
           <div className="grid gap-4">
@@ -162,10 +218,28 @@ export default function PicksPage() {
             ))}
           </div>
 
-          <div className="flex items-center justify-between mt-6">
-            <button className="btn-secondary" disabled={page === 0} onClick={() => setPage((x) => Math.max(0, x - 1))}>Previous</button>
-            <span className="text-sm text-gray-400">Page {page + 1}</span>
-            <button className="btn-secondary" onClick={() => setPage((x) => x + 1)}>Next</button>
+          <div className="grid grid-cols-3 items-center mt-6">
+            <div className="justify-self-start">
+              {page > 0 ? (
+                <button className="btn-secondary cursor-pointer" onClick={() => setPage((x) => Math.max(0, x - 1))}>Previous</button>
+              ) : null}
+            </div>
+            <div className="justify-self-center">
+              <select
+                className="form-field cursor-pointer"
+                value={page + 1}
+                onChange={(e) => setPage(Math.max(0, Math.min(Number(e.target.value) - 1, totalPages - 1)))}
+              >
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((n) => (
+                  <option key={n} value={n}>{n}</option>
+                ))}
+              </select>
+            </div>
+            <div className="justify-self-end">
+              {page + 1 < totalPages ? (
+                <button className="btn-secondary cursor-pointer" onClick={() => setPage((x) => Math.min(totalPages - 1, x + 1))}>Next</button>
+              ) : null}
+            </div>
           </div>
         </main>
       </div>

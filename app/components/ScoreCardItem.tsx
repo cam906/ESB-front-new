@@ -42,7 +42,7 @@ function statusColor(status: number) {
   return "text-gray-400";
 }
 
-export default function ScoreCardItem({ pick, isUnlocked, isAdmin, hideButtons, onShowUnlocked, onUnlock }: Props) {
+export default function ScoreCardItem({ pick, isUnlocked, isAdmin, onShowUnlocked, onUnlock }: Props) {
   const unlocked = isUnlocked;
   const isNew = pick.status === 1;
   const dt = new Date(pick.matchTime);
@@ -54,15 +54,32 @@ export default function ScoreCardItem({ pick, isUnlocked, isAdmin, hideButtons, 
     minute: "2-digit",
   }).format(dt);
 
+  const clickable = typeof onShowUnlocked === 'function' || typeof onUnlock === 'function';
+
+  function handleOpen() {
+    if (!clickable) return;
+    if (unlocked || !isNew) {
+      onShowUnlocked?.(pick.id);
+    } else {
+      onUnlock?.(pick.id);
+    }
+  }
+
   return (
-    <div className="card p-4 flex flex-col gap-3">
-      <div className="flex items-center justify-between">
-        <h3 className="font-semibold text-lg">{pick.title}</h3>
-        <span className="text-sm text-gray-400">{timeStr}</span>
+    <div
+      className={`card p-4 flex flex-col gap-3 ${clickable ? 'cursor-pointer transition-transform hover:-translate-y-0.5 hover:shadow-md' : ''}`}
+      onClick={handleOpen}
+      role={clickable ? 'button' : undefined}
+      tabIndex={clickable ? 0 : undefined}
+    >
+      <div className="grid grid-cols-[auto_1fr_auto] items-center">
+        <div className="invisible text-sm text-gray-400 whitespace-nowrap" aria-hidden="true">{timeStr}</div>
+        <h3 className="text-center font-semibold text-xl px-2">{pick.title}</h3>
+        <div className="justify-self-end text-sm text-gray-400 whitespace-nowrap">{timeStr}</div>
       </div>
 
       <div className="grid grid-cols-3 items-center gap-2">
-        <div className="justify-self-start">
+        <div className="justify-self-center">
           <TeamImage name={pick.HomeCompetitor?.name || "Home"} logo={pick.HomeCompetitor?.logo} />
         </div>
         <div className="text-center text-sm">
@@ -85,20 +102,12 @@ export default function ScoreCardItem({ pick, isUnlocked, isAdmin, hideButtons, 
             {(unlocked || !isNew) ? pick.summary : <span className="text-gray-400">Unlock to view summary</span>}
           </div>
         </div>
-        <div className="justify-self-end">
+        <div className="justify-self-center">
           <TeamImage name={pick.AwayCompetitor?.name || "Away"} logo={pick.AwayCompetitor?.logo} />
         </div>
       </div>
 
-      {!hideButtons && (
-        <div className="mt-2">
-          {unlocked ? (
-            <button className="btn-primary" onClick={() => onShowUnlocked?.(pick.id)}>{isAdmin ? "View pick" : "Show unlocked pick"}</button>
-          ) : (
-            <button className="btn-secondary" onClick={() => onUnlock?.(pick.id)}>Unlock pick</button>
-          )}
-        </div>
-      )}
+      {/* Buttons removed; whole card is clickable */}
     </div>
   );
 }

@@ -149,7 +149,7 @@ export default function Header() {
               <>
                 <Link href="/add-picks" className={`${isActivePath('/add-picks') ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`}>Add Picks</Link>
                 <Link href="/edit-picks" className={`${isActivePath('/edit-picks') ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`}>Edit Picks</Link>
-                <Link href="/admin" className={`${isActivePath('/admin') ? 'text-primary' : ''} py-2 px-3 hover:text-primary`}>Admin</Link>
+                <Link href="/admin" className={`${isActivePath('/admin') ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`}>Admin</Link>
               </>
             )}
 

@@ -86,7 +86,7 @@ export default function EditPicksPage() {
   }, [client, page]);
 
   function sportTitle(id: number) { return sports.find((s) => s.id === id)?.title || String(id); }
-  function competitorName(id: number) { return competitors.find((c) => c.id === id)?.name || String(id); }
+  // function competitorName(id: number) { return competitors.find((c) => c.id === id)?.name || String(id); }
 
   function startEdit(p: Pick) {
     setSelected({ ...p });
@@ -140,9 +140,13 @@ export default function EditPicksPage() {
       <div className="grid gap-4 md:grid-cols-2">
         <div className="card p-4">
           <h2 className="text-xl font-semibold mb-2">Picks</h2>
-          <div className="grid gap-2">
+          <div className="grid gap-3">
             {items.map((p) => (
-              <button key={p.id} className={`text-left p-2 rounded border ${selected?.id === p.id ? 'border-primary' : 'border-gray-700'}`} onClick={() => startEdit(p)}>
+              <button
+                key={p.id}
+                className={`text-left p-3 rounded-lg border shadow-sm bg-white dark:bg-slate-900/40 cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors transition-shadow ${selected?.id === p.id ? 'border-primary ring-2 ring-primary bg-yellow-50 dark:bg-yellow-900/20' : 'border-gray-700'}`}
+                onClick={() => startEdit(p)}
+              >
                 <div className="font-medium">{p.title}</div>
                 <div className="text-sm text-gray-400">{sportTitle(p.SportId)} • #{p.id}</div>
               </button>

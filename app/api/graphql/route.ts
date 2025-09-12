@@ -88,6 +88,7 @@ const typeDefs = /* GraphQL */ `
     users(limit: Int = 20, offset: Int = 0): [User!]!
     user(id: ID!): User
     picks(limit: Int = 20, offset: Int = 0, status: Int, statuses: [Int!], sportId: Int, sortBy: String = "matchTime", sortDir: String = "ASC"): [Pick!]!
+    picksCount(status: Int, statuses: [Int!], sportId: Int): Int!
     pick(id: ID!): Pick
     sports: [Sport!]!
     competitors(sportId: Int): [Competitor!]!
@@ -187,7 +188,8 @@ const resolvers = {
       }
       if (typeof args.sportId === 'number') where.SportId = args.sportId;
 
-      const sortBy = args.sortBy === 'createdAt' ? 'createdAt' : 'matchTime';
+      const allowedSorts = new Set(['createdAt', 'matchTime', 'id', 'cntUnlocked']);
+      const sortBy = allowedSorts.has(String(args.sortBy)) ? String(args.sortBy) : 'matchTime';
       const sortDir = args.sortDir && args.sortDir.toUpperCase() === 'DESC' ? 'desc' : 'asc';
 
       return prisma.pick.findMany({
@@ -218,6 +220,22 @@ const resolvers = {
       const where: Record<string, unknown> = {};
       if (typeof args.sportId === 'number') where.SportId = args.sportId;
       return prisma.competitor.findMany({ where, orderBy: { name: 'asc' } });
+    },
+    picksCount: async (
+      _: unknown,
+      args: { status?: number; statuses?: number[]; sportId?: number },
+      ctx: { request: Request }
+    ) => {
+      const currentUser = await getCurrentUserFromRequest(ctx.request);
+      if (!currentUser) throw new Error('Unauthorized');
+      const where: Record<string, unknown> = {};
+      if (Array.isArray(args.statuses) && args.statuses.length > 0) {
+        where.status = { in: args.statuses };
+      } else if (typeof args.status === 'number') {
+        where.status = args.status;
+      }
+      if (typeof args.sportId === 'number') where.SportId = args.sportId;
+      return prisma.pick.count({ where });
     },
     packages: async () => {
       return prisma.package.findMany({ orderBy: { createdAt: 'asc' } });
