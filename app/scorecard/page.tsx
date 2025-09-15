@@ -126,11 +126,11 @@ export default function ScorecardPage() {
           </div>
 
           <div className="grid grid-cols-2 gap-4 mb-4">
-            <div className="card p-4">
+            <div className="card p-4 text-center">
               <div className="text-sm text-gray-400">Overall correct</div>
               <div className="text-2xl font-semibold">{overallPct}%</div>
             </div>
-            <div className="card p-4">
+            <div className="card p-4 text-center">
               <div className="text-sm text-gray-400">Correct this week</div>
               <div className="text-2xl font-semibold">{recentPct}%</div>
             </div>
@@ -226,7 +226,6 @@ export default function ScorecardPage() {
                     isUnlocked={isAuthenticated}
                     isAdmin={isAdmin}
                     onShowUnlocked={() => handleShowUnlocked(p.id)}
-                    onUnlock={() => import('aws-amplify/auth').then(({ signInWithRedirect }) => signInWithRedirect())}
                   />
                 </div>
               ))

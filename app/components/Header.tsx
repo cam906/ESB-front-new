@@ -155,8 +155,8 @@ export default function Header() {
 
             {!isAuthenticated && (
               <>
-                <button onClick={handleSignIn} className="bg-primary text-black font-bold py-2 px-4 rounded-lg">Sign Up</button>
-                <button onClick={handleSignIn} className="bg-primary text-black font-bold py-2 px-4 rounded-lg">Sign In</button>
+                <button onClick={handleSignIn} className="bg-primary text-black font-bold py-2 px-4 rounded-lg hover:cursor-pointer">Sign Up</button>
+                <button onClick={handleSignIn} className="bg-primary text-black font-bold py-2 px-4 rounded-lg hover:cursor-pointer">Sign In</button>
               </>
             )}
 
@@ -214,8 +214,8 @@ export default function Header() {
           )}
           {!isAuthenticated && (
             <>
-              <button className="mb-4 bg-primary text-black font-bold py-2 px-4 rounded-lg text-center" onClick={() => { setIsMobileOpen(false); handleSignIn(); }}>Sign Up</button>
-              <button className="mb-4 bg-primary text-black font-bold py-2 px-4 rounded-lg text-center" onClick={() => { setIsMobileOpen(false); handleSignIn(); }}>Sign In</button>
+              <button className="mb-4 bg-primary text-black font-bold py-2 px-4 rounded-lg text-center hover:cursor-pointer" onClick={() => { setIsMobileOpen(false); handleSignIn(); }}>Sign Up</button>
+              <button className="mb-4 bg-primary text-black font-bold py-2 px-4 rounded-lg text-center hover:cursor-pointer" onClick={() => { setIsMobileOpen(false); handleSignIn(); }}>Sign In</button>
             </>
           )}
           {isAuthenticated && (

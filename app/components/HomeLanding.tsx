@@ -57,7 +57,7 @@ export default function HomeLanding({ packages }: { packages: Package[] }) {
                 <p>Win Rate</p>
               </div>
               <div className="card p-6 stat-hover min-w-[160px] flex-1">
-                <p id="average-roi" className="text-4xl stat-number text-primary">+25%</p>
+                <p id="average-roi" className="text-4xl stat-number text-primary">90% - 150%</p>
                 <p>Average ROI</p>
               </div>
               <div className="card p-6 stat-hover min-w-[160px] flex-1">

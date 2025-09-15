@@ -45,7 +45,6 @@ export default function PicksPage() {
   const [picks, setPicks] = useState<Pick[]>([]);
   const [loading, setLoading] = useState(true);
   const [unlockedIds, setUnlockedIds] = useState<Set<number>>(new Set());
-  const [locallyUnlockedIds, setLocallyUnlockedIds] = useState<Set<number>>(new Set());
   const [userCredits, setUserCredits] = useState<number>(0);
   const [page, setPage] = useState(0);
   // totalPages determines next/prev visibility
@@ -97,7 +96,7 @@ export default function PicksPage() {
         }),
       ]);
       const items = (data?.picks || []);
-      setPicks(items.slice(0, pageSize));
+      setPicks(items.slice(0, pageSize).map(p => ({ ...p, id: Number(p.id) })));
       const total = countData?.picksCount ?? 0;
       setTotalPages(Math.max(1, Math.ceil(total / pageSize)));
       if (!(data?.picks || []).length) {
@@ -121,7 +120,7 @@ export default function PicksPage() {
   }, [client, isAuthenticated, user?.id, user?.credits]);
 
   function isUnlocked(p: Pick) {
-    return isAuthenticated && (isAdmin || unlockedIds.has(+p.id) || locallyUnlockedIds.has(+p.id));
+    return isAuthenticated && (isAdmin || unlockedIds.has(p.id));
   }
 
   function handleShowUnlocked(pickId: number) {
@@ -138,13 +137,14 @@ export default function PicksPage() {
 
   function onUnlocked(pickId: number) {
     console.info("Pick Unlocked!");
-    setUnlockedIds((prev) => new Set(prev).add(pickId));
-    setLocallyUnlockedIds((prev) => new Set(prev).add(pickId));
     try {
       triggerConfettiFromCard(pickId);
     } catch (e) {
       console.warn('Confetti failed', e);
     }
+    setTimeout(() => {
+      setUnlockedIds((prev) => new Set(prev).add(pickId));
+    }, 1000);
   }
 
   function ensureConfettiStyles() {
