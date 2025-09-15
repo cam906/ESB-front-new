@@ -2,6 +2,8 @@
 import { useEffect, useMemo, useState } from "react";
 import { fetchAuthSession } from "aws-amplify/auth";
 import { useAuthenticator } from "@aws-amplify/ui-react";
+import { gql } from "@apollo/client";
+import { useApolloClient } from "@apollo/client/react";
 
 export type MeUser = {
   id: number;
@@ -14,6 +16,7 @@ export type MeUser = {
 
 export function useMe() {
   const { authStatus } = useAuthenticator((c) => [c.authStatus]);
+  const client = useApolloClient();
   const [user, setUser] = useState<MeUser | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<unknown>(null);
@@ -36,18 +39,13 @@ export function useMe() {
           setUser(null);
           return;
         }
-        const resp = await fetch('/api/graphql', {
-          method: 'POST',
-          headers: {
-            'content-type': 'application/json',
-            'authorization': `Bearer ${token}`,
-          },
-          body: JSON.stringify({ query: 'query { me { id email name credits roles myReferralCode } }' }),
+        const ME = gql`query { me { id email name credits roles myReferralCode } }`;
+        const { data } = await client.query<{ me: MeUser | null }>({
+          query: ME,
+          fetchPolicy: "no-cache",
+          context: { headers: { authorization: `Bearer ${token}` } },
         });
-        if (!resp.ok) throw new Error('Failed to load me');
-        const json = await resp.json();
-        const me = json?.data?.me ?? null;
-        if (!cancelled) setUser(me);
+        if (!cancelled) setUser(data?.me ?? null);
       } catch (e) {
         if (!cancelled) {
           setError(e);
@@ -61,7 +59,7 @@ export function useMe() {
     return () => {
       cancelled = true;
     };
-  }, [isAuthenticated]);
+  }, [client, isAuthenticated]);
 
   return useMemo(() => ({ user, loading, error, isAuthenticated }), [user, loading, error, isAuthenticated]);
 }

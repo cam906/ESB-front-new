@@ -73,19 +73,18 @@ export default function ScoreCardItem({ pick, isUnlocked, isAdmin, onShowUnlocke
       role={clickable ? 'button' : undefined}
       tabIndex={clickable ? 0 : undefined}
     >
-      <div className="grid grid-cols-[auto_1fr_auto] items-center">
-        <div className="invisible text-sm text-gray-400 whitespace-nowrap" aria-hidden="true">{timeStr}</div>
-        <h3 className="text-center font-semibold text-xl px-2">{pick.title}</h3>
-        <div className="justify-self-end text-sm text-gray-400 whitespace-nowrap">{timeStr}</div>
+      <div className="text-center">
+        <h3 className="font-semibold text-xl px-2">{pick.title}</h3>
+        <div className="text-sm text-gray-400 mt-0.5">{timeStr}</div>
       </div>
 
-      <div className="grid grid-cols-3 items-center gap-2">
-        <div className="justify-self-center">
+      <div className="grid grid-cols-2 md:grid-cols-3 items-center gap-2">
+        <div className="justify-self-center order-1 md:order-1">
           <TeamImage name={pick.HomeCompetitor?.name || "Home"} logo={pick.HomeCompetitor?.logo} />
         </div>
-        <div className="text-center text-sm">
+        <div className="text-center text-sm col-span-2 md:col-span-1 order-3 md:order-2">
           {isNew && !unlocked ? (
-            <div className="relative rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-4 overflow-hidden">
+            <div className="relative rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/10 p-4 overflow-hidden">
               <div className="text-left text-xs text-slate-500 dark:text-slate-400 leading-5 blur-[2px] select-none">
                 {`Key injuries could alter rotations, but coaching adjustments and bench depth are expected to stabilize performance.`}
               </div>
@@ -113,7 +112,7 @@ export default function ScoreCardItem({ pick, isUnlocked, isAdmin, onShowUnlocke
               )}
               <div className="mt-2">
                 {(unlocked || !isNew) ? (
-                  <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-4 text-center text-sm">
+                  <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/10 p-4 text-center text-sm">
                     {pick.summary}
                   </div>
                 ) : null}
@@ -121,7 +120,7 @@ export default function ScoreCardItem({ pick, isUnlocked, isAdmin, onShowUnlocke
             </>
           )}
         </div>
-        <div className="justify-self-center">
+        <div className="justify-self-center order-2 md:order-3">
           <TeamImage name={pick.AwayCompetitor?.name || "Away"} logo={pick.AwayCompetitor?.logo} />
         </div>
       </div>

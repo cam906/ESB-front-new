@@ -200,6 +200,7 @@ const resolvers = {
       });
     },
     pick: async (_: unknown, args: { id: string }, ctx: { request: Request }) => {
+      console.log("args.id", args.id);
       const currentUser = await getCurrentUserFromRequest(ctx.request);
       if (!currentUser) throw new Error('Unauthorized');
       return prisma.pick.findUnique({ where: { id: Number(args.id) } });
