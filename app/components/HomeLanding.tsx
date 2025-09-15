@@ -1,5 +1,7 @@
 "use client";
 import { useEffect, useMemo, useCallback } from "react";
+import { gql } from "@apollo/client";
+import { useQuery } from "@apollo/client/react";
 import { useRouter } from "next/navigation";
 import { useMe } from "@/app/lib/useMe";
 import { signInWithRedirect } from "aws-amplify/auth";
@@ -15,6 +17,10 @@ type Package = {
 export default function HomeLanding({ packages }: { packages: Package[] }) {
   const router = useRouter();
   const { isAuthenticated } = useMe();
+  type SiteMetricsQuery = { siteMetrics: { winRatePercent: number; averageRoiText: string; winStreak: number; members: number } };
+  const { data: metricsData } = useQuery<SiteMetricsQuery>(gql`
+    query SiteMetrics { siteMetrics { winRatePercent averageRoiText winStreak members } }
+  `, { fetchPolicy: "cache-first" });
   useEffect(() => {
     const carousel = document.getElementById("package-carousel");
     const platinum = document.getElementById("platinum-card");
@@ -37,35 +43,35 @@ export default function HomeLanding({ packages }: { packages: Package[] }) {
   return (
     <main>
       <section
-        className="relative text-white text-center"
+        className="relative text-center"
         style={{ background: "linear-gradient(180deg, rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('/hero.jpg') no-repeat center center / cover" }}
       >
         <div className="absolute inset-0 bg-black opacity-60"></div>
         <div className="relative container mx-auto pt-32 pb-20 px-4">
-          <h1 className="text-4xl font-bold mb-4 flex items-center justify-center gap-2">
+          <h1 className="text-4xl font-bold mb-4 flex items-center justify-center gap-2 text-white">
             Winning with Expert NBA Tips
             <img src="/nba-logo.svg" className="w-16 h-16 inline-block align-middle" alt="ESB Logo" />
           </h1>
-          <p id="hero-text" className="text-l mb-8">
+          <p id="hero-text" className="text-l mb-8 text-white">
             Gain an unbeatable edge with our expert, data-driven basketball tips. We do the research, you collect the winnings.
           </p>
 
           <div className="relative container mx-auto gutters pb-16">
             <div className="grid grid-cols-2 gap-4 text-center md:grid-cols-2 lg:grid-cols-4">
               <div className="card p-6 stat-hover min-w-[160px] flex-1">
-                <p id="win-rate" className="text-4xl stat-number text-success">78%</p>
+                <p id="win-rate" className="text-4xl stat-number text-success">{metricsData?.siteMetrics?.winRatePercent ?? 0}%</p>
                 <p>Win Rate</p>
               </div>
               <div className="card p-6 stat-hover min-w-[160px] flex-1">
-                <p id="average-roi" className="text-4xl stat-number text-primary">90% - 150%</p>
+                <p id="average-roi" className="text-4xl stat-number text-primary">{metricsData?.siteMetrics?.averageRoiText ?? "90% - 150%"}</p>
                 <p>Average ROI</p>
               </div>
               <div className="card p-6 stat-hover min-w-[160px] flex-1">
-                <p id="win-streak" className="text-4xl stat-number text-accent">12</p>
+                <p id="win-streak" className="text-4xl stat-number text-accent">{metricsData?.siteMetrics?.winStreak ?? 0}</p>
                 <p>Win Streak</p>
               </div>
               <div className="card p-6 stat-hover min-w-[160px] flex-1">
-                <p id="active-members" className="text-4xl stat-number">1,200+</p>
+                <p id="active-members" className="text-4xl stat-number">{(metricsData?.siteMetrics?.members ?? 0).toLocaleString()}</p>
                 <p>Members</p>
               </div>
             </div>

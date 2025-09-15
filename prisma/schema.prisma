@@ -11,6 +11,26 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+enum MetricType {
+  WIN_RATE
+  AVG_ROI
+  WIN_STREAK
+  MEMBERS
+}
+
+model DailyMetric {
+  id         Int         @id @default(autoincrement())
+  metric     MetricType
+  date       DateTime    @db.Date
+  value      Decimal?    @db.Decimal(10, 2)
+  textValue  String?     @db.VarChar(64)
+  meta       Json?
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  @@unique([metric, date], map: "DailyMetric_metric_date_uindex")
+}
+
 model Competitor {
   id        Int       @id @default(autoincrement())
   SportId   Int

@@ -64,6 +64,14 @@ const typeDefs = /* GraphQL */ `
     updatedAt: Date!
   }
 
+  type Metrics {
+    date: Date!
+    winRatePercent: Int!
+    averageRoiText: String!
+    winStreak: Int!
+    members: Int!
+  }
+
   type CreditPurchase {
     id: ID!
     UserId: Int!
@@ -96,6 +104,7 @@ const typeDefs = /* GraphQL */ `
     me: User
     creditPurchases(limit: Int = 20, offset: Int = 0, userId: Int): PaginatedCreditPurchases!
     packages: [Package!]!
+    siteMetrics: Metrics!
   }
 
   type Mutation {
@@ -200,7 +209,6 @@ const resolvers = {
       });
     },
     pick: async (_: unknown, args: { id: string }, ctx: { request: Request }) => {
-      console.log("args.id", args.id);
       const currentUser = await getCurrentUserFromRequest(ctx.request);
       if (!currentUser) throw new Error('Unauthorized');
       return prisma.pick.findUnique({ where: { id: Number(args.id) } });
@@ -240,6 +248,33 @@ const resolvers = {
     },
     packages: async () => {
       return prisma.package.findMany({ orderBy: { createdAt: 'asc' } });
+    },
+    siteMetrics: async () => {
+      const latest = await prisma.$queryRaw<{ metric: string; date: Date; value: number | null; textValue: string | null }[]>`
+        SELECT t.metric, t.date, t.value, t.textValue FROM DailyMetric t
+        INNER JOIN (
+          SELECT metric, MAX(date) AS max_date
+          FROM DailyMetric
+          GROUP BY metric
+        ) m ON m.metric = t.metric AND m.max_date = t.date
+      `;
+
+      const byMetric: Record<string, { date: Date; value: number | null; textValue: string | null }> = {};
+      for (const row of latest) {
+        byMetric[row.metric] = {
+          date: row.date,
+          value: row.value ?? null,
+          textValue: row.textValue ?? null,
+        };
+      }
+
+      const date = byMetric['WIN_RATE']?.date || new Date();
+      const winRatePercent = Math.round(Number(byMetric['WIN_RATE']?.value ?? 0));
+      const averageRoiText = byMetric['AVG_ROI']?.textValue || '90% - 150%';
+      const winStreak = Math.round(Number(byMetric['WIN_STREAK']?.value ?? 0));
+      const members = Math.round(Number(byMetric['MEMBERS']?.value ?? 0));
+
+      return { date, winRatePercent, averageRoiText, winStreak, members };
     },
     unlockedPicks: async (_: unknown, args: { userId: string }, ctx: { request: Request }) => {
       const currentUser = await getCurrentUserFromRequest(ctx.request);
@@ -436,7 +471,6 @@ const resolvers = {
           const userIds = Array.from(new Set(unlocked.map((u) => u.UserId)));
           for (const userId of userIds) {
             await tx.user.update({ where: { id: userId }, data: { credits: { increment: 1 }, updatedAt: new Date() } });
-            console.log(`Incremented credits for user ${userId}`);
           }
           return updatedInner;
         });

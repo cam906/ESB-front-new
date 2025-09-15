@@ -8,8 +8,16 @@ import { v4 as uuid } from "uuid";
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
+function getRequiredEnv(key: string): string {
+  const value = process.env[key];
+  if (!value || String(value).trim() === "") {
+    throw new Error(`Missing required environment variable: ${key}`);
+  }
+  return value;
+}
+
 const s3 = new S3Client({
-  region: process.env.AWS_REGION!,
+  region: getRequiredEnv('AWS_REGION'),
   // If you deploy on Vercel/Node, the default credential provider will read envs:
   // AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / AWS_SESSION_TOKEN (optional)
 });
@@ -29,7 +37,7 @@ export async function POST(req: NextRequest) {
     // Generate a safe object key. Prefix with a namespace/folder and date buckets.
 
     const cmd = new PutObjectCommand({
-      Bucket: process.env.NEXT_PUBLIC_ESB_COMPETITOR_ASSETS!,
+      Bucket: getRequiredEnv('NEXT_PUBLIC_ESB_COMPETITOR_ASSETS'),
       Key: `${folder ?? "competitors/"}${key}`,
       ContentType: fileType,            // enforce on the upload
       // Recommended security (pick one):
