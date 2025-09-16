@@ -17,10 +17,10 @@ function getRequiredEnv(key: string): string {
 }
 
 const s3 = new S3Client({
-  region: getRequiredEnv('_AWS_REGION'),
+  region: getRequiredEnv('REGION'),
   credentials: {
-    accessKeyId: getRequiredEnv('_AWS_ACCESS_KEY_ID'),
-    secretAccessKey: getRequiredEnv('_AWS_SECRET_ACCESS_KEY'),
+    accessKeyId: getRequiredEnv('ACCESS_KEY_ID'),
+    secretAccessKey: getRequiredEnv('SECRET_ACCESS_KEY'),
   },
 });
 
