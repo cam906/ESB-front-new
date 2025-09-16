@@ -4,6 +4,7 @@ generator nextAdmin {
 generator client {
   provider = "prisma-client-js"
   output   = "../app/generated/prisma"
+  binaryTargets = ["native", "rhel-openssl-1.0.x", "rhel-openssl-3.0.x"]
 }
 
 datasource db {
