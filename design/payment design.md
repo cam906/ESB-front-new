@@ -1,6 +1,6 @@
 User clicks Buy on a Choose button
 if not logged in, it redirects to the login page.
-if logged in, it initiate paypal payment with REACT_APP_PAYPAL_CLIENT_ID.
+if logged in, it initiate paypal payment with NEXT_PUBLIC_PAYPAL_CLIENT_ID.
 PayPal popup completes. On success, it Sends a GraphQL mutation CreateOrSaveCreditPurchase with:
 UserId, PackageId, PayPal IDs, processor='PAYPAL', and timestamp.
 If the backend returns an ID, it redirects to the Payment Success page.

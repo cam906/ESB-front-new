@@ -9,7 +9,7 @@ function getRequiredEnv(key: string): string {
 }
 
 const configureEnvironment = function () {
-  const clientId = getRequiredEnv('PAYPAL_CLIENT_ID')
+  const clientId = getRequiredEnv('NEXT_PUBLIC_PAYPAL_CLIENT_ID')
   const clientSecret = getRequiredEnv('PAYPAL_CLIENT_SECRET')
 
   return process.env.NODE_ENV === 'production'

@@ -17,9 +17,11 @@ function getRequiredEnv(key: string): string {
 }
 
 const s3 = new S3Client({
-  region: getRequiredEnv('AWS_REGION'),
-  // If you deploy on Vercel/Node, the default credential provider will read envs:
-  // AWS_ACCESS_KEY_ID / AWS_SECRET_ACCESS_KEY / AWS_SESSION_TOKEN (optional)
+  region: getRequiredEnv('_AWS_REGION'),
+  credentials: {
+    accessKeyId: getRequiredEnv('_AWS_ACCESS_KEY_ID'),
+    secretAccessKey: getRequiredEnv('_AWS_SECRET_ACCESS_KEY'),
+  },
 });
 
 const Body = z.object({
