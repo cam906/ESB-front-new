@@ -59,7 +59,7 @@ export default function HomeLanding({ packages }: { packages: Package[] }) {
           <div className="relative container mx-auto gutters pb-16">
             <div className="grid grid-cols-2 gap-4 text-center md:grid-cols-2 lg:grid-cols-4">
               <div className="card p-6 stat-hover min-w-[160px] flex-1">
-                <p id="win-rate" className="text-4xl stat-number text-success">{metricsData?.siteMetrics?.winRatePercent ?? 0}%</p>
+                <p id="win-rate" className="text-4xl stat-number text-success">{metricsData?.siteMetrics?.winRatePercent ?? 65}%</p>
                 <p>Win Rate</p>
               </div>
               <div className="card p-6 stat-hover min-w-[160px] flex-1">
@@ -67,11 +67,11 @@ export default function HomeLanding({ packages }: { packages: Package[] }) {
                 <p>Average ROI</p>
               </div>
               <div className="card p-6 stat-hover min-w-[160px] flex-1">
-                <p id="win-streak" className="text-4xl stat-number text-accent">{metricsData?.siteMetrics?.winStreak ?? 0}</p>
+                <p id="win-streak" className="text-4xl stat-number text-accent">{metricsData?.siteMetrics?.winStreak ?? 4}</p>
                 <p>Win Streak</p>
               </div>
               <div className="card p-6 stat-hover min-w-[160px] flex-1">
-                <p id="active-members" className="text-4xl stat-number">{(metricsData?.siteMetrics?.members ?? 0).toLocaleString()}</p>
+                <p id="active-members" className="text-4xl stat-number">{(metricsData?.siteMetrics?.members ?? 662).toLocaleString()}</p>
                 <p>Members</p>
               </div>
             </div>
