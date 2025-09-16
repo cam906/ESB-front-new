@@ -1,4 +1,5 @@
 import { createSchema, createYoga } from 'graphql-yoga';
+import type { NextRequest } from 'next/server';
 import prisma from '@/prisma';
 import { getCurrentUserFromRequest, isAdminUser } from '@/app/lib/cognitoServer';
 
@@ -489,6 +490,16 @@ const yoga = createYoga({
   fetchAPI: { Request: Request, Response: Response, Headers: Headers },
 });
 
-export { yoga as GET, yoga as POST };
+type RouteContext = { params: Promise<Record<string, never>> };
+
+export async function GET(request: NextRequest, context: RouteContext) {
+  await context.params;
+  return yoga.fetch(request);
+}
+
+export async function POST(request: NextRequest, context: RouteContext) {
+  await context.params;
+  return yoga.fetch(request);
+}
 
 

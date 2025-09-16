@@ -1,14 +1,13 @@
 "use client";
 
-import { useEffect } from "react";
+import { Suspense, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 
-export default function ReferralRedirectPage() {
+function ReferralRedirectInner() {
   const router = useRouter();
   const params = useSearchParams();
 
   useEffect(() => {
-    // Placeholder: handle referral code then redirect
     const code = params.get("code");
     const next = params.get("next") || "/";
     if (code) {
@@ -22,6 +21,14 @@ export default function ReferralRedirectPage() {
       <h1 className="text-2xl font-bold">Redirecting…</h1>
       <p className="dark:text-gray-400">Processing your referral link.</p>
     </div>
+  );
+}
+
+export default function ReferralRedirectPage() {
+  return (
+    <Suspense fallback={<div className="container mx-auto gutters section-spacing"><p>Loading…</p></div>}>
+      <ReferralRedirectInner />
+    </Suspense>
   );
 }
 
