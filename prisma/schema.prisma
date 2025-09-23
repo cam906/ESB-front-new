@@ -1,6 +1,7 @@
 generator nextAdmin {
-    provider              = "next-admin-generator-prisma"
-  }
+  provider = "next-admin-generator-prisma"
+}
+
 generator client {
   provider = "prisma-client-js"
   output   = "../app/generated/prisma"
@@ -12,178 +13,181 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-enum MetricType {
-  WIN_RATE
-  AVG_ROI
-  WIN_STREAK
-  MEMBERS
-}
-
-model DailyMetric {
-  id         Int         @id @default(autoincrement())
-  metric     MetricType
-  date       DateTime    @db.Date
-  value      Decimal?    @db.Decimal(10, 2)
-  textValue  String?     @db.VarChar(64)
-  meta       Json?
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
-
-  @@unique([metric, date], map: "DailyMetric_metric_date_uindex")
-}
-
-model Competitor {
-  id        Int       @id @default(autoincrement())
-  SportId   Int
+model competitor {
+  id        Int       @id(map: "idx_24588_primary") @default(autoincrement())
+  sportid   Int
   name      String    @db.VarChar(128)
   logo      String?   @db.VarChar(128)
-  createdAt DateTime  @db.DateTime(0)
-  updatedAt DateTime  @db.DateTime(0)
-  deletedAt DateTime? @db.DateTime(0)
+  createdat DateTime  @db.Timestamptz(6)
+  updatedat DateTime  @db.Timestamptz(6)
+  deletedat DateTime? @db.Timestamptz(6)
 
-  @@unique([SportId, name], map: "Competitor_SportId_name_uindex")
+  @@unique([sportid, name], map: "idx_24588_competitor_sportid_name_uindex")
 }
 
 /// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model CreditPurchase {
-  id                       Int       @id @default(autoincrement())
-  UserId                   Int
-  oldSystemUserId          String?   @db.VarChar(64)
-  PackageId                Int
-  callbackKey              String    @db.VarChar(256)
-  priceInCents             Int?
+model creditpurchase {
+  id                       Int       @id(map: "idx_24593_primary") @default(autoincrement())
+  userid                   Int
+  oldsystemuserid          String?   @db.VarChar(64)
+  packageid                Int
+  callbackkey              String    @db.VarChar(256)
+  priceincents             Int?
   credits                  Int
-  ExternalPaymentProcessor String?   @db.VarChar(64)
-  ExternalChargeId         String?   @db.VarChar(64)
-  startedAt                DateTime  @db.DateTime(0)
-  appliedAt                DateTime? @db.DateTime(0)
-  createdAt                DateTime  @db.DateTime(0)
-  updatedAt                DateTime  @db.DateTime(0)
-  deletedAt                DateTime? @db.DateTime(0)
+  externalpaymentprocessor String?   @db.VarChar(64)
+  externalchargeid         String?   @db.VarChar(64)
+  startedat                DateTime  @db.Timestamptz(6)
+  appliedat                DateTime? @db.Timestamptz(6)
+  createdat                DateTime  @db.Timestamptz(6)
+  updatedat                DateTime  @db.Timestamptz(6)
+  deletedat                DateTime? @db.Timestamptz(6)
 }
 
-model MailQueue {
-  id                  BigInt    @id @default(autoincrement())
-  mailStatus          Int
+model dailymetric {
+  id        Int                @id(map: "idx_24598_primary") @default(autoincrement())
+  metric    dailymetric_metric
+  date      DateTime           @db.Date
+  value     Decimal?           @db.Decimal(10, 2)
+  textvalue String?            @db.VarChar(64)
+  meta      Json?              @db.Json
+  createdat DateTime           @default(now()) @db.Timestamptz(6)
+  updatedat DateTime           @db.Timestamptz(6)
+
+  @@unique([metric, date], map: "idx_24598_dailymetric_metric_date_uindex")
+}
+
+model mailqueue {
+  id                  BigInt    @id(map: "idx_24606_primary") @default(autoincrement())
+  mailstatus          Int
   from                String    @db.VarChar(255)
   to                  String    @db.VarChar(255)
   cc                  String?   @db.VarChar(255)
   bcc                 String?   @db.VarChar(255)
   subject             String    @db.VarChar(255)
-  template            String    @db.MediumText
-  templateVars        String    @db.MediumText
-  attachmentPath      String?   @db.VarChar(255)
-  attachmentFilename  String?   @db.VarChar(255)
-  attachmentMediaType String?   @db.VarChar(255)
-  errorMessage        String?   @db.VarChar(255)
-  createdAt           DateTime  @db.DateTime(0)
-  updatedAt           DateTime? @db.DateTime(0)
-  deletedAt           DateTime? @db.DateTime(0)
-}
-
-model Package {
-  id             Int       @id @default(autoincrement())
-  title          String    @db.VarChar(32)
-  description    String    @db.VarChar(512)
-  credits        Int
-  priceInCents   Int
-  ExternalPlanId String?   @db.VarChar(32)
-  createdAt      DateTime  @db.DateTime(0)
-  updatedAt      DateTime  @db.DateTime(0)
-  deletedAt      DateTime? @db.DateTime(0)
-}
-
-/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
-model Pick {
-  id               Int       @id @default(autoincrement())
-  SportId          Int
-  AwayCompetitorId Int
-  HomeCompetitorId Int
-  status           Int
-  title            String    @db.VarChar(128)
-  slug             String?   @db.VarChar(128)
-  matchTime        DateTime  @db.DateTime(0)
-  analysis         String    @db.VarChar(4096)
-  summary          String    @db.VarChar(256)
-  isFeatured       Int       @default(0) @db.TinyInt
-  cntUnlocked      Int       @default(0)
-  ExternalDataObj  String?   @db.VarChar(4096)
-  createdAt        DateTime  @db.DateTime(0)
-  updatedAt        DateTime  @db.DateTime(0)
-  deletedAt        DateTime? @db.DateTime(0)
-}
-
-model PickNews {
-  id        Int       @id @default(autoincrement())
-  PickId    Int
-  news      String    @db.VarChar(4096)
-  createdAt DateTime  @db.DateTime(0)
-  updatedAt DateTime  @db.DateTime(0)
-  deletedAt DateTime? @db.DateTime(0)
-}
-
-model Sport {
-  id         Int       @id @default(autoincrement())
-  shortTitle String    @unique(map: "Sport_shortTitle_uindex") @db.VarChar(6)
-  title      String    @unique(map: "Sport_title_uindex") @db.VarChar(32)
-  createdAt  DateTime  @db.DateTime(0)
-  updatedAt  DateTime  @db.DateTime(0)
-  deletedAt  DateTime? @db.DateTime(0)
-}
-
-model UnlockedPick {
-  id              Int       @id @default(autoincrement())
-  UserId          Int
-  oldSystemUserId String?   @db.VarChar(64)
-  PickId          Int
-  createdAt       DateTime  @db.DateTime(0)
-  updatedAt       DateTime  @db.DateTime(0)
-  deletedAt       DateTime? @db.DateTime(0)
-}
-
-model User {
-  id                Int       @id @default(autoincrement())
-  email             String    @unique(map: "users_email_uindex") @db.VarChar(128)
-  name              String?   @db.VarChar(128)
-  credits           Int       @default(0)
-  cognitoUserId     String?   @unique(map: "User_cognitoUserId_uindex") @db.VarChar(64)
-  oldSystemUserId   String?   @unique(map: "User_oldSystemUserId_uindex") @db.VarChar(64)
-  roles             String?   @db.VarChar(64)
-  myReferralCode    String?   @db.VarChar(16)
-  otherReferralCode String?   @db.VarChar(16)
-  createdAt         DateTime  @db.DateTime(0)
-  updatedAt         DateTime  @db.DateTime(0)
-  deletedAt         DateTime? @db.DateTime(0)
-  password          String    @db.VarChar(255)
-}
-
-model UserRole {
-  id   Int    @id @default(autoincrement())
-  role String @unique(map: "UserRole_role_uindex") @db.VarChar(16)
-}
-
-model Order {
-  id             Int       @id @default(autoincrement())
-  UserId         Int
-  PackageId      Int
-  paypalOrderId  String    @unique(map: "Order_paypalOrderId_uindex") @db.VarChar(64)
-  amountInCents  Int
-  currency       String    @db.VarChar(8)
-  status         String    @db.VarChar(16) // created | captured | failed | cancelled
-  rawResponse    String?   @db.MediumText
-  createdAt      DateTime  @db.DateTime(0)
-  updatedAt      DateTime  @db.DateTime(0)
-  deletedAt      DateTime? @db.DateTime(0)
+  template            String
+  templatevars        String
+  attachmentpath      String?   @db.VarChar(255)
+  attachmentfilename  String?   @db.VarChar(255)
+  attachmentmediatype String?   @db.VarChar(255)
+  errormessage        String?   @db.VarChar(255)
+  createdat           DateTime  @db.Timestamptz(6)
+  updatedat           DateTime? @db.Timestamptz(6)
+  deletedat           DateTime? @db.Timestamptz(6)
 }
 
 /// The underlying table does not contain a valid unique identifier and can therefore currently not be handled by Prisma Client.
 model old_db_picks {
-  AwayTeamId     Int?
-  HomeTeamId     Int?
-  SportId        Int?
-  Slug           String? @db.VarChar(128)
-  PickResultText String? @db.VarChar(16)
-  PickResult     Int?    @default(0)
+  awayteamid     Int?
+  hometeamid     Int?
+  sportid        Int?
+  slug           String? @db.VarChar(128)
+  pickresulttext String? @db.VarChar(16)
+  pickresult     Int?    @default(0)
 
   @@ignore
+}
+
+model order {
+  id            Int       @id(map: "idx_24613_primary") @default(autoincrement())
+  userid        Int
+  packageid     Int
+  paypalorderid String    @unique(map: "idx_24613_order_paypalorderid_uindex") @db.VarChar(64)
+  amountincents Int
+  currency      String    @db.VarChar(8)
+  status        String    @db.VarChar(16)
+  rawresponse   String?
+  createdat     DateTime  @db.Timestamptz(6)
+  updatedat     DateTime  @db.Timestamptz(6)
+  deletedat     DateTime? @db.Timestamptz(6)
+}
+
+/// This model has been renamed to 'Renamedpackage' during introspection, because the original name 'package' is reserved.
+model Renamedpackage {
+  id             Int       @id(map: "idx_24620_primary") @default(autoincrement())
+  title          String    @db.VarChar(32)
+  description    String    @db.VarChar(512)
+  credits        Int
+  priceincents   Int
+  externalplanid String?   @db.VarChar(32)
+  createdat      DateTime  @db.Timestamptz(6)
+  updatedat      DateTime  @db.Timestamptz(6)
+  deletedat      DateTime? @db.Timestamptz(6)
+
+  @@map("package")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model pick {
+  id               Int       @id(map: "idx_24627_primary") @default(autoincrement())
+  sportid          Int
+  awaycompetitorid Int
+  homecompetitorid Int
+  status           Int
+  title            String    @db.VarChar(128)
+  slug             String?   @db.VarChar(128)
+  matchtime        DateTime  @db.Timestamptz(6)
+  analysis         String    @db.VarChar(4096)
+  summary          String    @db.VarChar(256)
+  isfeatured       Int       @default(0) @db.SmallInt
+  cntunlocked      Int       @default(0)
+  externaldataobj  String?   @db.VarChar(4096)
+  createdat        DateTime  @db.Timestamptz(6)
+  updatedat        DateTime  @db.Timestamptz(6)
+  deletedat        DateTime? @db.Timestamptz(6)
+}
+
+model picknews {
+  id        Int       @id(map: "idx_24636_primary") @default(autoincrement())
+  pickid    Int
+  news      String    @db.VarChar(4096)
+  createdat DateTime  @db.Timestamptz(6)
+  updatedat DateTime  @db.Timestamptz(6)
+  deletedat DateTime? @db.Timestamptz(6)
+}
+
+model sport {
+  id         Int       @id(map: "idx_24643_primary") @default(autoincrement())
+  shorttitle String    @unique(map: "idx_24643_sport_shorttitle_uindex") @db.VarChar(6)
+  title      String    @unique(map: "idx_24643_sport_title_uindex") @db.VarChar(32)
+  createdat  DateTime  @db.Timestamptz(6)
+  updatedat  DateTime  @db.Timestamptz(6)
+  deletedat  DateTime? @db.Timestamptz(6)
+}
+
+model unlockedpick {
+  id              Int       @id(map: "idx_24648_primary") @default(autoincrement())
+  userid          Int
+  oldsystemuserid String?   @db.VarChar(64)
+  pickid          Int
+  createdat       DateTime  @db.Timestamptz(6)
+  updatedat       DateTime  @db.Timestamptz(6)
+  deletedat       DateTime? @db.Timestamptz(6)
+}
+
+model user {
+  id                Int       @id(map: "idx_24653_primary") @default(autoincrement())
+  email             String    @unique(map: "idx_24653_users_email_uindex") @db.VarChar(128)
+  name              String?   @db.VarChar(128)
+  credits           Int       @default(0)
+  cognitouserid     String?   @unique(map: "idx_24653_user_cognitouserid_uindex") @db.VarChar(64)
+  oldsystemuserid   String?   @unique(map: "idx_24653_user_oldsystemuserid_uindex") @db.VarChar(64)
+  roles             String?   @db.VarChar(64)
+  myreferralcode    String?   @db.VarChar(16)
+  otherreferralcode String?   @db.VarChar(16)
+  createdat         DateTime  @db.Timestamptz(6)
+  updatedat         DateTime  @db.Timestamptz(6)
+  deletedat         DateTime? @db.Timestamptz(6)
+  password          String    @db.VarChar(255)
+}
+
+model userrole {
+  id   Int    @id(map: "idx_24661_primary") @default(autoincrement())
+  role String @unique(map: "idx_24661_userrole_role_uindex") @db.VarChar(16)
+}
+
+enum dailymetric_metric {
+  WIN_RATE
+  AVG_ROI
+  WIN_STREAK
+  MEMBERS
 }
