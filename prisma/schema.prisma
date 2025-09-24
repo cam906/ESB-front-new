@@ -96,8 +96,8 @@ model OldDbPick {
 
 model Order {
   id            Int       @id(map: "idx_24613_primary") @default(autoincrement())
-  userId        Int       @map("userid")
-  packageId     Int       @map("packageid")
+  UserId        Int       @map("userid")
+  PackageId     Int       @map("packageid")
   paypalOrderId String    @unique(map: "idx_24613_order_paypalorderid_uindex") @map("paypalorderid") @db.VarChar(64)
   amountInCents Int       @map("amountincents")
   currency      String    @db.VarChar(8)
