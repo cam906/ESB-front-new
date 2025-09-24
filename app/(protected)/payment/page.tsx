@@ -9,7 +9,7 @@ export default async function PaymentPage({ searchParams }: Props) {
   const packageId = Number(sp?.packageId || 0);
   if (!packageId) redirect("/packages");
 
-  const pkg = await prisma.package.findUnique({ where: { id: packageId } });
+  const pkg = await prisma.packages.findUnique({ where: { id: packageId } });
   if (!pkg) redirect("/packages");
 
   return (

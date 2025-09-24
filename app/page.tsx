@@ -9,7 +9,7 @@ export default async function Home() {
   console.log(process.env.DATABASE_URL);
   console.log(process.env.ACCESS_KEY_ID);
   console.log(process.env.SECRET_ACCESS_KEY);
-  const packages = await prisma.package.findMany({
+  const packages = await prisma.packages.findMany({
     where: { deletedAt: null },
     orderBy: { priceInCents: "asc" },
   });

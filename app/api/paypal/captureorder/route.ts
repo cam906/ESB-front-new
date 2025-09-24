@@ -35,7 +35,7 @@ export async function POST(request: Request) {
     }
 
     // Credit user based on package
-    const pkg = await prisma.package.findUnique({ where: { id: packageId } });
+    const pkg = await prisma.packages.findUnique({ where: { id: packageId } });
     if (!pkg) return Response.json({ success: false, message: 'Package not found' }, { status: 404 });
 
     // Optional: validate amount and currency

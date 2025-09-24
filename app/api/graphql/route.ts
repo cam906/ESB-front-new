@@ -248,7 +248,7 @@ const resolvers = {
       return prisma.pick.count({ where });
     },
     packages: async () => {
-      return prisma.package.findMany({ orderBy: { createdAt: 'asc' } });
+      return prisma.packages.findMany({ orderBy: { createdAt: 'asc' } });
     },
     siteMetrics: async () => {
       const latest = await prisma.$queryRaw<{ metric: string; date: Date; value: number | null; textValue: string | null }[]>`
@@ -323,7 +323,7 @@ const resolvers = {
     },
     package: async (parent: { PackageId: number }) => {
       if (!parent?.PackageId) return null;
-      return prisma.package.findUnique({ where: { id: Number(parent.PackageId) } });
+      return prisma.packages.findUnique({ where: { id: Number(parent.PackageId) } });
     },
   },
   Mutation: {

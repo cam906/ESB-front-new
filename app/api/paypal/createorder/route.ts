@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     const packageId = Number(body?.package_id || 0);
     if (!packageId) return Response.json({ success: false, message: 'Missing package_id' }, { status: 400 });
 
-    const pkg = await prisma.package.findUnique({ where: { id: packageId } });
+    const pkg = await prisma.packages.findUnique({ where: { id: packageId } });
     if (!pkg) return Response.json({ success: false, message: 'Package not found' }, { status: 404 });
 
     const amountValue = (pkg.priceInCents / 100).toFixed(2);
