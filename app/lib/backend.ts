@@ -5,10 +5,10 @@ export function getBackendBaseUrl() {
 
   // Vercel/production detection
   if (process.env.NODE_ENV === "production") {
-    return "https://www.elitesportsbets.com";
+    return "https://elitesportsbets.com";
   }
   // Local dev default
-  return "http://localhost:4000";
+  return "http://localhost:3000";
 }
 
 

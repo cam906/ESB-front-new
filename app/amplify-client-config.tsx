@@ -3,6 +3,7 @@
 
 import { Amplify } from "aws-amplify";
 import { Authenticator } from "@aws-amplify/ui-react";
+import { getBackendBaseUrl } from "./lib/backend";
 
 // The Authenticator.Provider makes authentication state globally available
 export default function AuthenticatorProvider({ children }: { children: React.ReactNode; }) {
@@ -18,8 +19,8 @@ export default function AuthenticatorProvider({ children }: { children: React.Re
           oauth: {
             domain: process.env.NEXT_PUBLIC_COGNITO_DOMAIN ?? "",
             scopes: ["openid", "email", "phone"],
-            redirectSignIn: ["http://localhost:3000/"],
-            redirectSignOut: ["http://localhost:3000/"],
+            redirectSignIn: [getBackendBaseUrl()],
+            redirectSignOut: [getBackendBaseUrl()],
             responseType: "code",
           },
         },

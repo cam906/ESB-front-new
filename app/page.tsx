@@ -5,10 +5,6 @@ export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
 
 export default async function Home() {
-  //print out env variables
-  console.log(process.env.DATABASE_URL);
-  console.log(process.env.ACCESS_KEY_ID);
-  console.log(process.env.SECRET_ACCESS_KEY);
   const packages = await prisma.packages.findMany({
     where: { deletedAt: null },
     orderBy: { priceInCents: "asc" },

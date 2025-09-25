@@ -143,7 +143,7 @@ const typeDefs = /* GraphQL */ `
   }
 `;
 
-const resolvers = {
+export const resolvers = {
   Date: {
     __parseValue(value: unknown) {
       return value ? new Date(value as string) : null;
@@ -501,5 +501,4 @@ export async function POST(request: NextRequest, context: RouteContext) {
   await context.params;
   return yoga.fetch(request);
 }
-
 
