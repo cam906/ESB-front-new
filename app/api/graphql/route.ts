@@ -252,10 +252,10 @@ export const resolvers = {
     },
     siteMetrics: async () => {
       const latest = await prisma.$queryRaw<{ metric: string; date: Date; value: number | null; textValue: string | null }[]>`
-        SELECT t.metric, t.date, t.value, t.textValue FROM DailyMetric t
+        SELECT t.metric, t.date, t.value, t.textValue FROM elitesportsbets.DailyMetric t
         INNER JOIN (
           SELECT metric, MAX(date) AS max_date
-          FROM DailyMetric
+          FROM elitesportsbets.DailyMetric
           GROUP BY metric
         ) m ON m.metric = t.metric AND m.max_date = t.date
       `;

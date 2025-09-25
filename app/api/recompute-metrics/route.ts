@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
     SELECT
       SUM(CASE WHEN status = 10 THEN 1 ELSE 0 END) AS wins,
       SUM(CASE WHEN status IN (10, 20) THEN 1 ELSE 0 END) AS total
-    FROM Pick
+    FROM elitesportsbets.Pick
     WHERE deletedAt IS NULL
   `;
   const wins = Number(winRateRow?.[0]?.wins || 0);
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
   // Compute current win streak from the end of (correct+incorrect)
   const recentStatuses = await prisma.$queryRaw<{ status: number }[]>`
     SELECT status
-    FROM Pick
+    FROM elitesportsbets.Pick
     WHERE deletedAt IS NULL AND status IN (10, 20)
     ORDER BY matchTime DESC, id DESC
     LIMIT 2000
@@ -44,7 +44,7 @@ export async function POST(req: NextRequest) {
 
   // Compute members
   const membersRow = await prisma.$queryRaw<{ c: bigint }[]>`
-    SELECT COUNT(*) AS c FROM User WHERE deletedAt IS NULL
+    SELECT COUNT(*) AS c FROM elitesportsbets.User WHERE deletedAt IS NULL
   `;
   const members = Number(membersRow?.[0]?.c || 0);
 
@@ -53,22 +53,22 @@ export async function POST(req: NextRequest) {
   // Upsert into DailyMetric (raw SQL to avoid client regeneration requirements)
   // WIN_RATE
   await prisma.$executeRawUnsafe(
-    "INSERT INTO DailyMetric (metric, date, value, textValue, meta) VALUES (?, ?, ?, NULL, NULL) ON DUPLICATE KEY UPDATE value=VALUES(value), textValue=VALUES(textValue), updatedAt=CURRENT_TIMESTAMP",
+    "INSERT INTO elitesportsbets.DailyMetric (metric, date, value, textValue, meta) VALUES (?, ?, ?, NULL, NULL) ON DUPLICATE KEY UPDATE value=VALUES(value), textValue=VALUES(textValue), updatedAt=CURRENT_TIMESTAMP",
     'WIN_RATE', today, winRatePercent
   );
   // WIN_STREAK
   await prisma.$executeRawUnsafe(
-    "INSERT INTO DailyMetric (metric, date, value, textValue, meta) VALUES (?, ?, ?, NULL, NULL) ON DUPLICATE KEY UPDATE value=VALUES(value), textValue=VALUES(textValue), updatedAt=CURRENT_TIMESTAMP",
+    "INSERT INTO elitesportsbets.DailyMetric (metric, date, value, textValue, meta) VALUES (?, ?, ?, NULL, NULL) ON DUPLICATE KEY UPDATE value=VALUES(value), textValue=VALUES(textValue), updatedAt=CURRENT_TIMESTAMP",
     'WIN_STREAK', today, winStreak
   );
   // MEMBERS
   await prisma.$executeRawUnsafe(
-    "INSERT INTO DailyMetric (metric, date, value, textValue, meta) VALUES (?, ?, ?, NULL, NULL) ON DUPLICATE KEY UPDATE value=VALUES(value), textValue=VALUES(textValue), updatedAt=CURRENT_TIMESTAMP",
+    "INSERT INTO elitesportsbets.DailyMetric (metric, date, value, textValue, meta) VALUES (?, ?, ?, NULL, NULL) ON DUPLICATE KEY UPDATE value=VALUES(value), textValue=VALUES(textValue), updatedAt=CURRENT_TIMESTAMP",
     'MEMBERS', today, members
   );
   // AVG_ROI
   await prisma.$executeRawUnsafe(
-    "INSERT INTO DailyMetric (metric, date, value, textValue, meta) VALUES (?, ?, NULL, ?, NULL) ON DUPLICATE KEY UPDATE value=VALUES(value), textValue=VALUES(textValue), updatedAt=CURRENT_TIMESTAMP",
+    "INSERT INTO elitesportsbets.DailyMetric (metric, date, value, textValue, meta) VALUES (?, ?, NULL, ?, NULL) ON DUPLICATE KEY UPDATE value=VALUES(value), textValue=VALUES(textValue), updatedAt=CURRENT_TIMESTAMP",
     'AVG_ROI', today, averageRoiText
   );
 
