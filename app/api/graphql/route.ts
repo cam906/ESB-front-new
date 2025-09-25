@@ -251,20 +251,28 @@ export const resolvers = {
       return prisma.packages.findMany({ orderBy: { createdAt: 'asc' } });
     },
     siteMetrics: async () => {
-      const latest = await prisma.$queryRaw<{ metric: string; date: Date; value: number | null; textValue: string | null }[]>`
-        SELECT t.metric, t.date, t.value, t.textValue FROM elitesportsbets.DailyMetric t
-        INNER JOIN (
-          SELECT metric, MAX(date) AS max_date
-          FROM elitesportsbets.DailyMetric
-          GROUP BY metric
-        ) m ON m.metric = t.metric AND m.max_date = t.date
-      `;
+      const latest = await prisma.dailyMetric.findMany({
+        orderBy: [
+          { metric: 'asc' },
+          { date: 'desc' },
+        ],
+        distinct: ['metric'],
+        select: {
+          metric: true,
+          date: true,
+          value: true,
+          textValue: true,
+        },
+      });
 
-      const byMetric: Record<string, { date: Date; value: number | null; textValue: string | null }> = {};
+      const byMetric: Record<
+        string,
+        { date: Date; value: number | null; textValue: string | null }
+      > = {};
       for (const row of latest) {
         byMetric[row.metric] = {
           date: row.date,
-          value: row.value ?? null,
+          value: row.value !== null ? Number(row.value) : null,
           textValue: row.textValue ?? null,
         };
       }
@@ -501,4 +509,3 @@ export async function POST(request: NextRequest, context: RouteContext) {
   await context.params;
   return yoga.fetch(request);
 }
-

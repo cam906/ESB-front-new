@@ -18,59 +18,102 @@ export async function POST(req: NextRequest) {
   const today = getTodayUtcDateString();
 
   // Compute win rate: correct / (correct + incorrect)
-  const winRateRow = await prisma.$queryRaw<{ wins: bigint; total: bigint }[]>`
-    SELECT
-      SUM(CASE WHEN status = 10 THEN 1 ELSE 0 END) AS wins,
-      SUM(CASE WHEN status IN (10, 20) THEN 1 ELSE 0 END) AS total
-    FROM elitesportsbets.Pick
-    WHERE deletedAt IS NULL
-  `;
-  const wins = Number(winRateRow?.[0]?.wins || 0);
-  const total = Number(winRateRow?.[0]?.total || 0);
+  const [wins, total] = await Promise.all([
+    prisma.pick.count({ where: { deletedAt: null, status: 10 } }),
+    prisma.pick.count({
+      where: { deletedAt: null, status: { in: [10, 20] } },
+    }),
+  ]);
   const winRatePercent = total > 0 ? Math.round((wins / total) * 100) : 0;
 
   // Compute current win streak from the end of (correct+incorrect)
-  const recentStatuses = await prisma.$queryRaw<{ status: number }[]>`
-    SELECT status
-    FROM elitesportsbets.Pick
-    WHERE deletedAt IS NULL AND status IN (10, 20)
-    ORDER BY matchTime DESC, id DESC
-    LIMIT 2000
-  `;
+  const recentStatuses = await prisma.pick.findMany({
+    where: {
+      deletedAt: null,
+      status: { in: [10, 20] },
+    },
+    orderBy: [
+      { matchTime: 'desc' },
+      { id: 'desc' },
+    ],
+    select: { status: true },
+    take: 2000,
+  });
   let winStreak = 0;
   for (const row of recentStatuses) {
     if (row.status === 10) winStreak += 1; else break;
   }
 
   // Compute members
-  const membersRow = await prisma.$queryRaw<{ c: bigint }[]>`
-    SELECT COUNT(*) AS c FROM elitesportsbets.User WHERE deletedAt IS NULL
-  `;
-  const members = Number(membersRow?.[0]?.c || 0);
+  const members = await prisma.user.count({ where: { deletedAt: null } });
 
   const averageRoiText = '90% - 150%';
 
-  // Upsert into DailyMetric (raw SQL to avoid client regeneration requirements)
-  // WIN_RATE
-  await prisma.$executeRawUnsafe(
-    "INSERT INTO elitesportsbets.DailyMetric (metric, date, value, textValue, meta) VALUES (?, ?, ?, NULL, NULL) ON DUPLICATE KEY UPDATE value=VALUES(value), textValue=VALUES(textValue), updatedAt=CURRENT_TIMESTAMP",
-    'WIN_RATE', today, winRatePercent
-  );
-  // WIN_STREAK
-  await prisma.$executeRawUnsafe(
-    "INSERT INTO elitesportsbets.DailyMetric (metric, date, value, textValue, meta) VALUES (?, ?, ?, NULL, NULL) ON DUPLICATE KEY UPDATE value=VALUES(value), textValue=VALUES(textValue), updatedAt=CURRENT_TIMESTAMP",
-    'WIN_STREAK', today, winStreak
-  );
-  // MEMBERS
-  await prisma.$executeRawUnsafe(
-    "INSERT INTO elitesportsbets.DailyMetric (metric, date, value, textValue, meta) VALUES (?, ?, ?, NULL, NULL) ON DUPLICATE KEY UPDATE value=VALUES(value), textValue=VALUES(textValue), updatedAt=CURRENT_TIMESTAMP",
-    'MEMBERS', today, members
-  );
-  // AVG_ROI
-  await prisma.$executeRawUnsafe(
-    "INSERT INTO elitesportsbets.DailyMetric (metric, date, value, textValue, meta) VALUES (?, ?, NULL, ?, NULL) ON DUPLICATE KEY UPDATE value=VALUES(value), textValue=VALUES(textValue), updatedAt=CURRENT_TIMESTAMP",
-    'AVG_ROI', today, averageRoiText
-  );
+  const todayDate = new Date(`${today}T00:00:00.000Z`);
+  const metricsUpdatedAt = new Date();
+
+  await Promise.all([
+    prisma.dailyMetric.upsert({
+      where: { metric_date: { metric: 'WIN_RATE', date: todayDate } },
+      create: {
+        metric: 'WIN_RATE',
+        date: todayDate,
+        value: winRatePercent,
+        textValue: null,
+        updatedAt: metricsUpdatedAt,
+      },
+      update: {
+        value: winRatePercent,
+        textValue: null,
+        updatedAt: metricsUpdatedAt,
+      },
+    }),
+    prisma.dailyMetric.upsert({
+      where: { metric_date: { metric: 'WIN_STREAK', date: todayDate } },
+      create: {
+        metric: 'WIN_STREAK',
+        date: todayDate,
+        value: winStreak,
+        textValue: null,
+        updatedAt: metricsUpdatedAt,
+      },
+      update: {
+        value: winStreak,
+        textValue: null,
+        updatedAt: metricsUpdatedAt,
+      },
+    }),
+    prisma.dailyMetric.upsert({
+      where: { metric_date: { metric: 'MEMBERS', date: todayDate } },
+      create: {
+        metric: 'MEMBERS',
+        date: todayDate,
+        value: members,
+        textValue: null,
+        updatedAt: metricsUpdatedAt,
+      },
+      update: {
+        value: members,
+        textValue: null,
+        updatedAt: metricsUpdatedAt,
+      },
+    }),
+    prisma.dailyMetric.upsert({
+      where: { metric_date: { metric: 'AVG_ROI', date: todayDate } },
+      create: {
+        metric: 'AVG_ROI',
+        date: todayDate,
+        value: null,
+        textValue: averageRoiText,
+        updatedAt: metricsUpdatedAt,
+      },
+      update: {
+        value: null,
+        textValue: averageRoiText,
+        updatedAt: metricsUpdatedAt,
+      },
+    }),
+  ]);
 
   return NextResponse.json({
     date: today,
@@ -80,5 +123,4 @@ export async function POST(req: NextRequest) {
     members,
   });
 }
-
 
