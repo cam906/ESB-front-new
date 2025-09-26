@@ -16,7 +16,7 @@ type Pick = {
   status: number;
   title: string;
   matchTime: string;
-  summary: string;
+  summary?: string | null;
   cntUnlocked?: number;
 };
 
@@ -356,5 +356,4 @@ export default function PicksPage() {
     </div>
   );
 }
-
 

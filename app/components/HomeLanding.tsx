@@ -161,7 +161,7 @@ export default function HomeLanding({ packages }: { packages: Package[] }) {
         </p>
       </section>
 
-      <section className="section-spacing container mx-auto gutters">
+      {/* <section className="section-spacing container mx-auto gutters">
         <h2 className="text-3xl font-bold text-center mb-2">What Our Members Say</h2>
         <p className="text-center text-yellow-400 mb-8">★★★★☆ 4.8/5 from 1,200+ members</p>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -178,7 +178,7 @@ export default function HomeLanding({ packages }: { packages: Package[] }) {
             <div className="flex items-center"><p className="font-bold">Alex Rodriguez</p><p className="text-sm ml-2">Member since 2023</p></div>
           </div>
         </div>
-      </section>
+      </section> */}
 
       <section className="section-spacing container mx-auto gutters">
         <h2 className="text-3xl font-bold text-center mb-8">Why Choose ESB</h2>
@@ -216,7 +216,7 @@ export default function HomeLanding({ packages }: { packages: Package[] }) {
 
       <div className="bg-primary rounded-lg text-center p-12 container mx-auto gutters">
         <h2 className="text-3xl font-bold text-black mb-4">Ready to Start Winning?</h2>
-        <p className="text-black mb-8">Join 1,200+ successful bettors and turn your basketball knowledge into profit.</p>
+        <p className="text-black mb-8">Join {(metricsData?.siteMetrics?.members ?? 662).toLocaleString()}+ successful bettors and turn your basketball knowledge into profit.</p>
         <button onClick={() => signInWithRedirect()} className="bg-white text-black font-bold py-3 px-8 rounded-lg">Get Started Today</button>
       </div>
 

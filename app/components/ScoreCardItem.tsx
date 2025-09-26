@@ -9,7 +9,7 @@ export type PickItem = {
   title: string;
   status: number; // 0=new
   matchTime: string | Date;
-  summary: string;
+  summary?: string | null;
   cntUnlocked?: number;
   HomeCompetitor?: Competitor;
   AwayCompetitor?: Competitor;
@@ -113,7 +113,7 @@ export default function ScoreCardItem({ pick, isUnlocked, isAdmin, onShowUnlocke
               <div className="mt-2">
                 {(unlocked || !isNew) ? (
                   <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/10 p-4 text-center text-sm">
-                    {pick.summary}
+                    {pick.summary ?? ""}
                   </div>
                 ) : null}
               </div>
@@ -129,5 +129,4 @@ export default function ScoreCardItem({ pick, isUnlocked, isAdmin, onShowUnlocke
     </div>
   );
 }
-
 

@@ -26,8 +26,8 @@ const typeDefs = /* GraphQL */ `
     title: String!
     slug: String
     matchTime: Date!
-    analysis: String!
-    summary: String!
+    analysis: String
+    summary: String
     isFeatured: Boolean!
     cntUnlocked: Int!
     createdAt: Date!
@@ -143,6 +143,53 @@ const typeDefs = /* GraphQL */ `
   }
 `;
 
+type MaybeCurrentUser = Awaited<ReturnType<typeof getCurrentUserFromRequest>>;
+
+type GraphQLContext = {
+  request: Request;
+  currentUserPromise?: Promise<MaybeCurrentUser>;
+  unlockedPickAccess?: Map<number, Promise<boolean>>;
+};
+
+async function getCurrentUserCached(ctx: GraphQLContext): Promise<MaybeCurrentUser> {
+  if (!ctx.currentUserPromise) {
+    ctx.currentUserPromise = getCurrentUserFromRequest(ctx.request);
+  }
+  return ctx.currentUserPromise;
+}
+
+async function canAccessRestrictedPickFields(
+  pick: { id: number | string; status: number | string },
+  ctx: GraphQLContext
+): Promise<boolean> {
+  const status = Number(pick?.status);
+  if (!Number.isFinite(status) || status !== 1) return true;
+
+  const currentUser = await getCurrentUserCached(ctx);
+  if (!currentUser?.id) return false;
+  if (isAdminUser(currentUser)) return true;
+
+  const pickId = Number(pick?.id);
+  if (!Number.isFinite(pickId)) return false;
+
+  if (!ctx.unlockedPickAccess) {
+    ctx.unlockedPickAccess = new Map<number, Promise<boolean>>();
+  }
+
+  let allowed = ctx.unlockedPickAccess.get(pickId);
+  if (!allowed) {
+    allowed = prisma.unlockedPick
+      .findFirst({
+        where: { UserId: Number(currentUser.id), PickId: pickId },
+        select: { id: true },
+      })
+      .then((res) => Boolean(res));
+    ctx.unlockedPickAccess.set(pickId, allowed);
+  }
+
+  return allowed;
+}
+
 export const resolvers = {
   Date: {
     __parseValue(value: unknown) {
@@ -159,6 +206,28 @@ export const resolvers = {
     isFeatured: (parent: { isFeatured: number | boolean }) => {
       if (typeof parent.isFeatured === 'boolean') return parent.isFeatured;
       return Boolean(parent.isFeatured);
+    },
+    analysis: async (
+      parent: { id: number | string; status: number | string; analysis?: unknown },
+      _args: unknown,
+      ctx: unknown
+    ) => {
+      const context = ctx as GraphQLContext;
+      if (!(await canAccessRestrictedPickFields(parent, context))) {
+        return null;
+      }
+      return typeof parent.analysis === 'string' ? parent.analysis : null;
+    },
+    summary: async (
+      parent: { id: number | string; status: number | string; summary?: unknown },
+      _args: unknown,
+      ctx: unknown
+    ) => {
+      const context = ctx as GraphQLContext;
+      if (!(await canAccessRestrictedPickFields(parent, context))) {
+        return null;
+      }
+      return typeof parent.summary === 'string' ? parent.summary : null;
     },
   },
   Query: {
@@ -188,8 +257,6 @@ export const resolvers = {
       args: { limit?: number; offset?: number; status?: number; statuses?: number[]; sportId?: number; sortBy?: string; sortDir?: string },
       ctx: { request: Request }
     ) => {
-      const currentUser = await getCurrentUserFromRequest(ctx.request);
-      if (!currentUser) throw new Error('Unauthorized');
       const where: Record<string, unknown> = {};
       if (Array.isArray(args.statuses) && args.statuses.length > 0) {
         where.status = { in: args.statuses };
@@ -220,13 +287,9 @@ export const resolvers = {
       return prisma.user.findUnique({ where: { id: currentUser.id } });
     },
     sports: async (_: unknown, __: unknown, ctx: { request: Request }) => {
-      const currentUser = await getCurrentUserFromRequest(ctx.request);
-      if (!currentUser) throw new Error('Unauthorized');
       return prisma.sport.findMany({ orderBy: { title: 'asc' } });
     },
     competitors: async (_: unknown, args: { sportId?: number }, ctx: { request: Request }) => {
-      const currentUser = await getCurrentUserFromRequest(ctx.request);
-      if (!currentUser) throw new Error('Unauthorized');
       const where: Record<string, unknown> = {};
       if (typeof args.sportId === 'number') where.SportId = args.sportId;
       return prisma.competitor.findMany({ where, orderBy: { name: 'asc' } });
@@ -236,8 +299,6 @@ export const resolvers = {
       args: { status?: number; statuses?: number[]; sportId?: number },
       ctx: { request: Request }
     ) => {
-      const currentUser = await getCurrentUserFromRequest(ctx.request);
-      if (!currentUser) throw new Error('Unauthorized');
       const where: Record<string, unknown> = {};
       if (Array.isArray(args.statuses) && args.statuses.length > 0) {
         where.status = { in: args.statuses };

@@ -14,8 +14,8 @@ type Pick = {
   status: number;
   title: string;
   matchTime: string;
-  analysis: string;
-  summary: string;
+  analysis?: string | null;
+  summary?: string | null;
 };
 
 type Competitor = { id: number; name: string; logo?: string | null };
@@ -136,9 +136,9 @@ export default function PickDetailPage({ params }: Params) {
             <div className="text-center text-sm col-span-2 md:col-span-1 order-3 md:order-2">
               <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/10 p-5">
                 <div className="font-semibold mb-2">Summary</div>
-                <div className="text-center text-sm mb-3">{pick.summary}</div>
+                <div className="text-center text-sm mb-3">{pick.summary ?? ""}</div>
                 <div className="font-semibold mb-2">Analysis</div>
-                <div className="text-left text-sm leading-6 whitespace-pre-wrap">{pick.analysis}</div>
+                <div className="text-left text-sm leading-6 whitespace-pre-wrap">{pick.analysis ?? ""}</div>
               </div>
             </div>
             <div className="justify-self-center order-2 md:order-3 text-center">
@@ -156,5 +156,3 @@ export default function PickDetailPage({ params }: Params) {
     </div>
   );
 }
-
-

@@ -15,7 +15,7 @@ type Pick = {
   status: number;
   title: string;
   matchTime: string;
-  summary: string;
+  summary?: string | null;
 };
 
 const LIST_SPORTS = gql`query { sports { id title } }`;
@@ -260,4 +260,3 @@ export default function ScorecardPage() {
     </div>
   );
 }
-

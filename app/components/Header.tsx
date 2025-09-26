@@ -137,13 +137,9 @@ export default function Header() {
           <nav className="hidden md:flex items-center space-x-6">
             <Link href="/" className={`${isActivePath('/') ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`}>Home</Link>
 
-            {isAuthenticated && (
-              <>
-                <Link href="/picks" className={`${isActivePath('/picks') ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`}>Picks</Link>
-                <Link href="/scorecard" className={`${isActivePath('/scorecard') ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`}>Scorecard</Link>
-                <Link href="/#packages" className={`${isActivePackages() ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`}>Packages</Link>
-              </>
-            )}
+            <Link href="/picks" className={`${isActivePath('/picks') ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`}>Picks</Link>
+            <Link href="/scorecard" className={`${isActivePath('/scorecard') ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`}>Scorecard</Link>
+            <Link href="/#packages" className={`${isActivePackages() ? 'text-primary' : 'dark:text-gray-300'} hover:text-primary`}>Packages</Link>
 
             {isAdmin && (
               <>
