@@ -46,7 +46,7 @@ export default function ScorecardPage() {
   // totalPages determines next/prev visibility
   const [totalPages, setTotalPages] = useState(1);
   const [selectedSportId, setSelectedSportId] = useState<number | undefined>(undefined);
-  const [sort, setSort] = useState<"ALL" | "LATEST">("ALL");
+  const [sort, setSort] = useState<"ALL" | "LATEST">("LATEST");
 
   useEffect(() => {
     async function loadBase() {
