@@ -175,7 +175,7 @@ export default function AddPicksPage() {
         </label>
 
         <label className="grid gap-1">
-          <span>Slug</span>
+          <span>Pick</span>
           <input className="form-field" value={form.slug} onChange={(e) => update("slug", e.target.value)} />
         </label>
 

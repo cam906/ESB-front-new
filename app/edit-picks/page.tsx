@@ -200,7 +200,7 @@ export default function EditPicksPage() {
               </label>
 
               <label className="grid gap-1">
-                <span>Slug</span>
+                <span>Pick</span>
                 <input className="form-field" value={selected.slug || ""} onChange={(e) => update("slug", e.target.value)} />
               </label>
 
@@ -212,11 +212,6 @@ export default function EditPicksPage() {
               <label className="grid gap-1">
                 <span>Analysis</span>
                 <textarea className="form-field" rows={4} value={selected.analysis} onChange={(e) => update("analysis", e.target.value)} />
-              </label>
-
-              <label className="grid gap-1">
-                <span>Summary</span>
-                <textarea className="form-field" rows={2} value={selected.summary} onChange={(e) => update("summary", e.target.value)} />
               </label>
 
               <label className="inline-flex items-center gap-2">

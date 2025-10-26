@@ -69,7 +69,7 @@ export default function ScorecardPage() {
   useEffect(() => {
     async function loadPicks() {
       setLoading(true);
-      const statuses = [10, 20, 30, 100];
+      const statuses = [1, 10, 20, 30, 100];
       const pageSize = 30;
       const [{ data }, { data: countData }] = await Promise.all([
         client.query<{ picks: Pick[] }>({
