@@ -197,16 +197,6 @@ export default function AddPicksPage() {
           <textarea className="form-field" rows={4} value={form.analysis} onChange={(e) => update("analysis", e.target.value)} required />
         </label>
 
-        <label className="grid gap-1">
-          <span>Summary</span>
-          <textarea className="form-field" rows={2} value={form.summary} onChange={(e) => update("summary", e.target.value)} required />
-        </label>
-
-        <label className="inline-flex items-center gap-2">
-          <input type="checkbox" checked={form.isFeatured} onChange={(e) => update("isFeatured", e.target.checked)} />
-          <span>Featured</span>
-        </label>
-
         <div className="flex gap-2 justify-end">
           <button type="button" className="btn-secondary" onClick={() => router.back()} disabled={submitting}>Cancel</button>
           <button type="submit" className="btn-primary" disabled={submitting}>{submitting ? "Saving…" : "Create"}</button>

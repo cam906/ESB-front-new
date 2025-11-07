@@ -1,5 +1,5 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type SVGProps } from "react";
 import { gql } from "@apollo/client";
 import { useApolloClient } from "@apollo/client/react";
 
@@ -35,6 +35,19 @@ const UPDATE_PICK = gql`
     updatePick(id: $id, SportId: $SportId, AwayCompetitorId: $AwayCompetitorId, HomeCompetitorId: $HomeCompetitorId, status: $status, title: $title, slug: $slug, matchTime: $matchTime, analysis: $analysis, summary: $summary, isFeatured: $isFeatured) { id }
   }
 `;
+const DELETE_PICK = gql`mutation DeletePick($id: ID!) { deletePick(id: $id) }`;
+
+const TrashIcon = (props: SVGProps<SVGSVGElement>) => (
+  <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" {...props}>
+    <path
+      d="M6 7h12M9 7v10m6-10v10m-9 0a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2V7m-3-3H9m0 0V3a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v1m-6 0h6"
+      stroke="currentColor"
+      strokeWidth="1.5"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    />
+  </svg>
+);
 
 // Centralized Apollo client via provider
 
@@ -55,6 +68,7 @@ export default function EditPicksPage() {
   const [page, setPage] = useState(0);
   const [selected, setSelected] = useState<Pick | null>(null);
   const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     async function loadBase() {
@@ -119,17 +133,45 @@ export default function EditPicksPage() {
         },
       });
       alert("Saved");
-      // refresh list and keep the same pick selected
-      const { data } = await client.query<{ picks: Pick[] }>({ query: LIST_PICKS, variables: { limit: 20, offset: page * 20, sortBy: "matchTime", sortDir: "DESC" }, fetchPolicy: "no-cache" });
-      const refreshed = data?.picks || [];
-      setItems(refreshed);
-      const updatedItem = refreshed.find((p) => p.id === editedId) || null;
-      if (updatedItem) setSelected(updatedItem);
+      await refreshCurrentPage(editedId);
     } catch (e) {
       console.error(e);
       alert("Failed to save pick. Ensure you're an admin.");
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  async function refreshCurrentPage(keepId?: number | null) {
+    const { data } = await client.query<{ picks: Pick[] }>({
+      query: LIST_PICKS,
+      variables: { limit: 20, offset: page * 20, sortBy: "matchTime", sortDir: "DESC" },
+      fetchPolicy: "no-cache",
+    });
+    const refreshed = data?.picks || [];
+    setItems(refreshed);
+    if (typeof keepId === "number") {
+      const updatedItem = refreshed.find((p) => p.id === keepId) || null;
+      setSelected(updatedItem);
+    } else if (keepId === null) {
+      setSelected(null);
+    }
+  }
+
+  async function deletePick() {
+    if (!selected) return;
+    const confirmed = window.confirm("Do you want to delete this pick?");
+    if (!confirmed) return;
+    try {
+      setDeleting(true);
+      await client.mutate({ mutation: DELETE_PICK, variables: { id: String(selected.id) } });
+      alert("Pick deleted");
+      await refreshCurrentPage(null);
+    } catch (e) {
+      console.error(e);
+      alert("Failed to delete pick. Ensure you're an admin.");
+    } finally {
+      setDeleting(false);
     }
   }
 
@@ -160,7 +202,20 @@ export default function EditPicksPage() {
         </div>
 
         <div className="card p-4">
-          <h2 className="text-xl font-semibold mb-2">Edit</h2>
+          <div className="flex items-center justify-between mb-2">
+            <h2 className="text-xl font-semibold">Edit</h2>
+            {selected ? (
+              <button
+                type="button"
+                className="p-2 rounded-full text-red-600 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900/30 disabled:opacity-60"
+                onClick={deletePick}
+                disabled={submitting || deleting}
+                aria-label="Delete pick"
+              >
+                <TrashIcon className="h-5 w-5" />
+              </button>
+            ) : null}
+          </div>
           {!selected ? (
             <div className="text-gray-400">Select a pick to edit.</div>
           ) : (
@@ -214,14 +269,9 @@ export default function EditPicksPage() {
                 <textarea className="form-field" rows={4} value={selected.analysis} onChange={(e) => update("analysis", e.target.value)} />
               </label>
 
-              <label className="inline-flex items-center gap-2">
-                <input type="checkbox" checked={Boolean(selected.isFeatured)} onChange={(e) => update("isFeatured", e.target.checked)} />
-                <span>Featured</span>
-              </label>
-
               <div className="flex gap-2 justify-end">
-                <button className="btn-secondary" onClick={() => setSelected(null)} disabled={submitting}>Cancel</button>
-                <button className="btn-primary" onClick={save} disabled={submitting}>{submitting ? "Saving…" : "Save"}</button>
+                <button className="btn-secondary" onClick={() => setSelected(null)} disabled={submitting || deleting}>Cancel</button>
+                <button className="btn-primary" onClick={save} disabled={submitting || deleting}>{submitting ? "Saving…" : "Save"}</button>
               </div>
             </div>
           )}
@@ -230,5 +280,4 @@ export default function EditPicksPage() {
     </div>
   );
 }
-
 

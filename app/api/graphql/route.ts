@@ -140,6 +140,7 @@ const typeDefs = /* GraphQL */ `
       summary: String,
       isFeatured: Boolean
     ): Pick!
+    deletePick(id: ID!): Boolean!
   }
 `;
 
@@ -257,7 +258,7 @@ export const resolvers = {
       args: { limit?: number; offset?: number; status?: number; statuses?: number[]; sportId?: number; sortBy?: string; sortDir?: string },
       ctx: { request: Request }
     ) => {
-      const where: Record<string, unknown> = {};
+      const where: Record<string, unknown> = { deletedAt: null };
       if (Array.isArray(args.statuses) && args.statuses.length > 0) {
         where.status = { in: args.statuses };
       } else if (typeof args.status === 'number') {
@@ -279,7 +280,7 @@ export const resolvers = {
     pick: async (_: unknown, args: { id: string }, ctx: { request: Request }) => {
       const currentUser = await getCurrentUserFromRequest(ctx.request);
       if (!currentUser) throw new Error('Unauthorized');
-      return prisma.pick.findUnique({ where: { id: Number(args.id) } });
+      return prisma.pick.findFirst({ where: { id: Number(args.id), deletedAt: null } });
     },
     me: async (_: unknown, __: unknown, ctx: { request: Request }) => {
       const currentUser = await getCurrentUserFromRequest(ctx.request);
@@ -299,7 +300,7 @@ export const resolvers = {
       args: { status?: number; statuses?: number[]; sportId?: number },
       ctx: { request: Request }
     ) => {
-      const where: Record<string, unknown> = {};
+      const where: Record<string, unknown> = { deletedAt: null };
       if (Array.isArray(args.statuses) && args.statuses.length > 0) {
         where.status = { in: args.statuses };
       } else if (typeof args.status === 'number') {
@@ -549,6 +550,19 @@ export const resolvers = {
 
       const updated = await prisma.pick.update({ where: { id }, data });
       return updated;
+    },
+    deletePick: async (_: unknown, args: { id: string }, ctx: { request: Request }) => {
+      const currentUser = await getCurrentUserFromRequest(ctx.request);
+      if (!currentUser || !isAdminUser(currentUser)) throw new Error('Forbidden');
+
+      const id = Number(args.id);
+      const existing = await prisma.pick.findUnique({ where: { id }, select: { id: true, deletedAt: true } });
+      if (!existing || existing.deletedAt) {
+        throw new Error('Pick not found');
+      }
+
+      await prisma.pick.update({ where: { id }, data: { deletedAt: new Date(), updatedAt: new Date() } });
+      return true;
     },
   },
 };
