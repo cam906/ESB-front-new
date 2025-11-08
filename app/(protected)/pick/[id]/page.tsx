@@ -127,7 +127,7 @@ export default function PickDetailPage({ params }: Params) {
             <div className="justify-self-center order-1 md:order-1 text-center">
               {homeSrc ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={homeSrc} alt={home?.name || "Home"} width={84} height={84} className="object-contain" />
+                <img src={homeSrc} alt={home?.name || "Home"} width={84} height={84} className="object-contain mx-auto" />
               ) : (
                 <div className="w-[84px] h-[84px] bg-gray-300 dark:bg-gray-700" />
               )}
@@ -135,6 +135,8 @@ export default function PickDetailPage({ params }: Params) {
             </div>
             <div className="text-center text-sm col-span-2 md:col-span-1 order-3 md:order-2">
               <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/10 p-5">
+                <div className="font-semibold mb-2">Pick</div>
+                <div className="text-center text-sm mb-3">{pick.summary ?? ""}</div>
                 <div className="font-semibold mb-2">Analysis</div>
                 <div className="text-left text-sm leading-6 whitespace-pre-wrap">{pick.analysis ?? ""}</div>
               </div>
