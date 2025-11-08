@@ -245,7 +245,7 @@ export default function HomeLanding({ packages }: { packages: Package[] }) {
           </details>
           <details className="faq-item card p-4">
             <summary className="font-semibold">How does the Platinum membership work?</summary>
-            <p className="mt-2">The Platinum membership is suited to members who are serious about using sports betting to develop short term and long-term wealth. You will unlock the true power of Elite Sports Bets using this membership and will quickly see your bankroll grow. As a Platinum member, you will have a personal senior trader and VIP client manager who will take full control of all your sports betting so that you won&apos;t have to lift a finger. Please email vip@elitesportsbets.com for further information.</p>
+            <p className="mt-2">The Platinum membership is suited to members who are serious about using sports betting to develop short term and long-term wealth. You will unlock the true power of ESB - Elite Sports Bets using this membership and will quickly see your bankroll grow. As a Platinum member, you will have a personal senior trader and VIP client manager who will take full control of all your sports betting so that you won&apos;t have to lift a finger. Please email vip@elitesportsbets.com for further information.</p>
           </details>
           <details className="faq-item card p-4">
             <summary className="font-semibold">When do I receive my picks?</summary>
