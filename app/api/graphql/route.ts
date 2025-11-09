@@ -53,6 +53,8 @@ const typeDefs = /* GraphQL */ `
     PickId: Int!
     createdAt: Date!
     updatedAt: Date!
+    user: User
+    pick: Pick
   }
 
   type Package {
@@ -93,6 +95,20 @@ const typeDefs = /* GraphQL */ `
     totalPages: Int!
   }
 
+  type PaginatedUnlockedPicks {
+    items: [UnlockedPick!]!
+    totalCount: Int!
+    page: Int!
+    pageSize: Int!
+    totalPages: Int!
+  }
+
+  type MonthlyRevenuePoint {
+    monthStart: Date!
+    label: String!
+    totalCents: Int!
+  }
+
   type Query {
     users(limit: Int = 20, offset: Int = 0): [User!]!
     user(id: ID!): User
@@ -106,6 +122,8 @@ const typeDefs = /* GraphQL */ `
     creditPurchases(limit: Int = 20, offset: Int = 0, userId: Int): PaginatedCreditPurchases!
     packages: [Package!]!
     siteMetrics: Metrics!
+    unlockedPicksAdmin(limit: Int = 10, offset: Int = 0): PaginatedUnlockedPicks!
+    monthlyRevenuePastYear: [MonthlyRevenuePoint!]!
   }
 
   type Mutation {
@@ -385,6 +403,70 @@ export const resolvers = {
 
       return { items, totalCount, page, pageSize, totalPages };
     },
+    unlockedPicksAdmin: async (_: unknown, args: { limit?: number; offset?: number }, ctx: { request: Request }) => {
+      const currentUser = await getCurrentUserFromRequest(ctx.request);
+      if (!currentUser || !isAdminUser(currentUser)) throw new Error('Forbidden');
+
+      const pageSize = Math.max(1, Math.min(100, args.limit ?? 10));
+      const offset = Math.max(0, args.offset ?? 0);
+      const where: Record<string, unknown> = { deletedAt: null };
+
+      const [items, totalCount] = await Promise.all([
+        prisma.unlockedPick.findMany({
+          where,
+          take: pageSize,
+          skip: offset,
+          orderBy: { createdAt: 'desc' },
+        }),
+        prisma.unlockedPick.count({ where }),
+      ]);
+
+      const page = Math.floor(offset / pageSize) + 1;
+      const totalPages = Math.max(1, Math.ceil(totalCount / pageSize));
+
+      return { items, totalCount, page, pageSize, totalPages };
+    },
+    monthlyRevenuePastYear: async (_: unknown, __: unknown, ctx: { request: Request }) => {
+      const currentUser = await getCurrentUserFromRequest(ctx.request);
+      if (!currentUser || !isAdminUser(currentUser)) throw new Error('Forbidden');
+
+      const now = new Date();
+      const start = new Date(now.getFullYear(), now.getMonth() - 11, 1);
+
+      const purchases = await prisma.creditPurchase.findMany({
+        where: {
+          deletedAt: null,
+          createdAt: { gte: start },
+        },
+        select: {
+          createdAt: true,
+          priceInCents: true,
+        },
+      });
+
+      const totals = new Map<string, number>();
+      for (const purchase of purchases) {
+        const createdAt = new Date(purchase.createdAt);
+        const key = `${createdAt.getFullYear()}-${createdAt.getMonth()}`;
+        const prev = totals.get(key) ?? 0;
+        const amount = typeof purchase.priceInCents === 'number' ? purchase.priceInCents : 0;
+        totals.set(key, prev + amount);
+      }
+
+      const result: { monthStart: Date; label: string; totalCents: number }[] = [];
+      for (let i = 11; i >= 0; i--) {
+        const monthStart = new Date(now.getFullYear(), now.getMonth() - i, 1);
+        const key = `${monthStart.getFullYear()}-${monthStart.getMonth()}`;
+        const totalCents = totals.get(key) ?? 0;
+        result.push({
+          monthStart,
+          label: monthStart.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
+          totalCents,
+        });
+      }
+
+      return result;
+    },
   },
   CreditPurchase: {
     user: async (parent: { UserId: number }) => {
@@ -394,6 +476,16 @@ export const resolvers = {
     package: async (parent: { PackageId: number }) => {
       if (!parent?.PackageId) return null;
       return prisma.packages.findUnique({ where: { id: Number(parent.PackageId) } });
+    },
+  },
+  UnlockedPick: {
+    user: async (parent: { UserId: number }) => {
+      if (!parent?.UserId) return null;
+      return prisma.user.findUnique({ where: { id: Number(parent.UserId) } });
+    },
+    pick: async (parent: { PickId: number }) => {
+      if (!parent?.PickId) return null;
+      return prisma.pick.findFirst({ where: { id: Number(parent.PickId), deletedAt: null } });
     },
   },
   Mutation: {
