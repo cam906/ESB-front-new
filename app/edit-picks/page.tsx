@@ -256,7 +256,7 @@ export default function EditPicksPage() {
 
               <label className="grid gap-1">
                 <span>Pick</span>
-                <input className="form-field" value={selected.summary || ""} onChange={(e) => update("slug", e.target.value)} />
+                <input className="form-field" value={selected.summary || ""} onChange={(e) => update("summary", e.target.value)} />
               </label>
 
               <label className="grid gap-1">
@@ -280,4 +280,3 @@ export default function EditPicksPage() {
     </div>
   );
 }
-
